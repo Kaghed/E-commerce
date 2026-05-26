@@ -43,4 +43,8 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Logout successfully'], 200);
     }
+
+    function testmiddleware(Request $request){
+        return response()->json('testing middleware', 200);
+    }
 }
