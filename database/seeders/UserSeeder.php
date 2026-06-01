@@ -13,6 +13,9 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+
+        //** admin */
+
         $user = User::create([
             'username' => "test1",
             'email' => 'testEmail1@gmail.com',
@@ -27,6 +30,8 @@ class UserSeeder extends Seeder
             'profile_image_url' => 'images/profiles/profile1.jpg',
         ]);
         $token1 = $user->createToken('authToken')->plainTextToken;
+
+        //** seller */
 
         $user = User::create([
             'username' => "test2",
@@ -43,6 +48,7 @@ class UserSeeder extends Seeder
         ]);
         $token2 = $user->createToken('authToken')->plainTextToken;
 
+        //** customer */
         $user = User::create([
             'username' => "test3",
             'email' => 'testEmail3@gmail.com',
