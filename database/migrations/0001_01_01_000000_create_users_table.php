@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->enum('role', ['admin', 'seller', 'customer'])->default('customer');
+            $table->text('ban_reason')->nullable();
+            $table->timestamp('banned_until')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

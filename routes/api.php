@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -29,4 +30,21 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::post('/forgotPassword', [UserController::class, 'forgotPassword']);
     Route::post('/changePassword', [ProfileController::class, 'changePassword']);
 
+
+
+Route::middleware("admin")->group(function () {
+
+    Route::get('/showUsers', [AdminController::class, 'showUsers']);
+
+    Route::post('/blockUser', [AdminController::class, 'blockUser']);
+
+
+        Route::post('/unBlockUser/{id}', [AdminController::class, 'unBlockUser']);
+        Route::get('/getBlockedUsers', [AdminController::class, 'getBlockedUsers']);
+
+
+    });
+
+
 });
+

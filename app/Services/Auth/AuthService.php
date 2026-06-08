@@ -48,7 +48,16 @@ class AuthService
 
             if (!Hash::check($request->password, $user->password))
                 return['message' => 'Wrong password try again!' ,'token' =>null];
-        $token = $user->createToken('auth_token')->plainTextToken;
+
+                if($user->banned_until && $user->banned_until > now()){
+            return ['message' =>
+             'Sorry you are banned' ,
+            $user->banned_until,
+                $user->ban_reason
+            , 'token' => null];
+
+        }
+            $token = $user->createToken('auth_token')->plainTextToken;
 
         return [
             'message'=>'Login successfully',
