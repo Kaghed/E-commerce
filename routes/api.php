@@ -6,6 +6,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\SellerMiddleware;
+use App\Http\Controllers\SellerController;
+use App\Http\Controllers\ProductController;
 use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Foundation\Configuration\Middleware;
 Route::get('/user', function (Request $request) {
@@ -28,8 +31,7 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::post('changePassword', [ProfileController::class, 'changePassword']);
 
     Route::post('/forgotPassword', [UserController::class, 'forgotPassword']);
-    Route::post('/changePassword', [ProfileController::class, 'changePassword']);
-
+     Route::post('/changePassword', [ProfileController::class, 'changePassword']); 
 
 
 Route::middleware("admin")->group(function () {
@@ -46,5 +48,22 @@ Route::middleware("admin")->group(function () {
     });
 
 
+
+
+    Route::get('/showallproducts', [ProductController::class, 'showAllProducts']);
+
+    Route::get('/products/{category_id}/categories', [ProductController::class, 'getProductByCategory']);
+
+    Route::get('/products/filterByPrice', [ProductController::class, 'FilterProductsByPrice']);
+    Route::get('/products/search', [ProductController::class, 'searchProducts']);
+    Route::get('/products/searchByProductUrl', [ProductController::class, 'searchProductsByProductUrl']);
+
+   
+});
+
+Route::middleware(['auth:sanctum', SellerMiddleware::class])->group(function () {
+    Route::post('/products', [SellerController::class, 'createProduct']);
+    Route::put('/products/{id}', [SellerController::class, 'updateProduct']);
+    Route::delete('/products/{id}', [SellerController::class, 'deleteProduct']);
 });
 
