@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class SellerController extends Controller
 {
-    public function __construct(protected CreateProductRequest $productService)
+    public function __construct(protected ProductService $productService)
     {
         
     }
