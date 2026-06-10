@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProductRequest;
+use App\Http\Requests\CreateProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Services\ProductService;
 use Illuminate\Http\Request;
 
 class SellerController extends Controller
 {
-    public function __construct(protected ProductService $productService)
+    public function __construct(protected CreateProductRequest $productService)
     {
         
     }
 
-    public function createProduct(ProductRequest $request)
+    public function createProduct(CreateProductRequest $request)
     {
         $product = $this->productService->create($request);
         return response()->json([

@@ -2,6 +2,7 @@
 
 namespace App\Services; 
 use App\Http\Requests\ProductRequest;
+use App\Http\Requests\CreateProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
@@ -10,7 +11,7 @@ use Illuminate\Support\Str;
 
 class ProductService
 {
-    public function create(ProductRequest $request)
+    public function create(CreateProductRequest $request)
     {
         $user = Auth::user();
         return Product::create([
