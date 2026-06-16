@@ -12,12 +12,20 @@ use function Illuminate\Support\minutes;
 
 class AdminController extends Controller
 {
-    public function showUsers(Request $request){
+    public function showUsers()
+    {
+        $users = User::paginate(10);
 
-        $users = User::all();
+        return response()->json([
+            'users' => UserResource::collection($users),
 
-        return UserResource::collection($users);
-
+            'pagination' => [
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'per_page' => $users->perPage(),
+                'total' => $users->total(),
+            ]
+        ]);
     }
 
     public function blockUser(Request $request){
@@ -69,8 +77,19 @@ class AdminController extends Controller
 
     public function getBlockedUsers(){
 
-        $user = User::whereNotNull('ban_reason')->get();
+        $users = User::whereNotNull('ban_reason')->paginate(10);
 
-        return response()->json($user, 200);
+
+        return response()->json([
+            'users' => UserResource::collection($users),
+
+            'pagination' => [
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'per_page' => $users->perPage(),
+                'total' => $users->total(),
+            ]
+        ]);
+
     }
 }
