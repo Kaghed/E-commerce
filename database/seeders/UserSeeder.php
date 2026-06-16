@@ -17,7 +17,6 @@ class UserSeeder extends Seeder
         //** admin */
 
         $user = User::create([
-            'username' => "test1",
             'email' => 'testEmail1@gmail.com',
             'password' => bcrypt('password123'),
             'role' => 'admin'
@@ -25,8 +24,10 @@ class UserSeeder extends Seeder
 
         Profile::create([
             'user_id' => $user->id,
-            'full_name' => 'Ali Ali',
+            'first_name' =>'Ali',
+            'last_name' =>'Mohammed',
             'date_of_birth' => '1990-05-15',
+            'governorate'=>'Damascus',
             'profile_image_url' => 'images/profiles/profile1.jpg',
         ]);
         $token1 = $user->createToken('authToken')->plainTextToken;
@@ -34,7 +35,6 @@ class UserSeeder extends Seeder
         //** seller */
 
         $user = User::create([
-            'username' => "test2",
             'email' => 'testEmail2@gmail.com',
             'password' => bcrypt('password123'),
             'role' => 'seller'
@@ -42,15 +42,16 @@ class UserSeeder extends Seeder
 
         Profile::create([
             'user_id' => $user->id,
-            'full_name' => 'Aghed Aghed',
+            'first_name'=>'Aghed' ,
+            'last_name' =>'Alkhateb',
             'date_of_birth' => '1998-07-05',
+            'governorate' => 'Latakia',
             'profile_image_url' => 'images/profiles/profile2.jpg',
         ]);
         $token2 = $user->createToken('authToken')->plainTextToken;
 
         //** customer */
         $user = User::create([
-            'username' => "test3",
             'email' => 'testEmail3@gmail.com',
             'password' => bcrypt('password123'),
             'role' => 'customer'
@@ -58,7 +59,9 @@ class UserSeeder extends Seeder
 
         Profile::create([
             'user_id' => $user->id,
-            'full_name' => 'Hasan Hasan',
+            'first_name' => 'Hasan',
+            'last_name'=>'Alkrad',
+            'governorate' => 'Daraa',
             'date_of_birth' => '1991-11-21',
             'profile_image_url' => 'images/profiles/profile3.jpg',
         ]);

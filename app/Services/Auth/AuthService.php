@@ -21,7 +21,6 @@ class AuthService
         return DB::transaction(function () use ($request) {
 
             $user = User::create([
-                'username' => $request->user_name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'role' => $request->role
@@ -31,7 +30,9 @@ class AuthService
                 ->store('profiles', 'public');
 
             $profile = $user->profile()->create([
-                'full_name' => trim($request->full_name),
+                'first_name'=> $request->first_name,
+                'last_name'=> $request->last_name,
+                'governorate'=>$request->governorate,
                 'date_of_birth' => $request->date_of_birth,
                 'profile_image_url' => $profileImagePath,
             ]);

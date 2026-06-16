@@ -25,12 +25,12 @@ class RegisterRequest extends FormRequest
         return [
             'email' => 'required|string|email|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
-            'user_name' => 'required|string|max:255',
-            'full_name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'governorate'=>'required|string|max:255',
             'date_of_birth' => 'required|date',
             'profile_image_url' => 'required|image|mimes:webp,jpg,jpeg,png,gif|max:10000',
             'role' => 'required|string|max:10',
         ];
     }
 }
-     

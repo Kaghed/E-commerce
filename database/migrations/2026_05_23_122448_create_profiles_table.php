@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Governorate;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +16,9 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('full_name');
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->enum('governorate', array_column(Governorate::cases(), 'value'));
             $table->date('date_of_birth');
             $table->string('profile_image_url');
         });
