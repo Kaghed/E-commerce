@@ -31,7 +31,7 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::post('changePassword', [ProfileController::class, 'changePassword']);
 
     Route::post('/forgotPassword', [UserController::class, 'forgotPassword']);
-     Route::post('/changePassword', [ProfileController::class, 'changePassword']); 
+ //    Route::post('/changePassword', [ProfileController::class, 'changePassword']); 
 
 
 Route::middleware("admin")->group(function () {
