@@ -31,14 +31,15 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::post('changePassword', [ProfileController::class, 'changePassword']);
 
     Route::post('/forgotPassword', [UserController::class, 'forgotPassword']);
-     Route::post('/changePassword', [ProfileController::class, 'changePassword']); 
+    Route::post('/changePassword', [ProfileController::class, 'changePassword']);
 
+    Route::post('updateProfile', [ProfileController::class, 'update']);
 
-Route::middleware("admin")->group(function () {
+    Route::middleware("admin")->group(function () {
 
-    Route::get('/showUsers', [AdminController::class, 'showUsers']);
+        Route::get('/showUsers', [AdminController::class, 'showUsers']);
 
-    Route::post('/blockUser', [AdminController::class, 'blockUser']);
+        Route::post('/blockUser', [AdminController::class, 'blockUser']);
 
 
         Route::post('/unBlockUser/{id}', [AdminController::class, 'unBlockUser']);
@@ -58,10 +59,10 @@ Route::middleware("admin")->group(function () {
     Route::get('/products/search', [ProductController::class, 'searchProducts']);
     Route::get('/products/searchByProductUrl', [ProductController::class, 'searchProductsByProductUrl']);
 
-   
+
 });
 
-Route::middleware(['auth:sanctum', SellerMiddleware::class])->group(function () {
+Route::middleware("seller")->group(function () {
     Route::post('/products', [SellerController::class, 'createProduct']);
     Route::put('/products/{id}', [SellerController::class, 'updateProduct']);
     Route::delete('/products/{id}', [SellerController::class, 'deleteProduct']);
