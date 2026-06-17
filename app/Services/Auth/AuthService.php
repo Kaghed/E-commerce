@@ -58,6 +58,8 @@ class AuthService
             , 'token' => null];
 
         }
+
+            $user->ban_reason = null;
             $token = $user->createToken('auth_token')->plainTextToken;
 
         return [
