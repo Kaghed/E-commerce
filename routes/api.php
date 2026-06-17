@@ -44,6 +44,7 @@ Route::middleware("auth:sanctum")->group(function () {
 
         Route::post('/unBlockUser/{id}', [AdminController::class, 'unBlockUser']);
         Route::get('/getBlockedUsers', [AdminController::class, 'getBlockedUsers']);
+        Route::get('/checkIfUserBlocked/{id}', [AdminController::class, 'checkIfUserBlocked']);
 
 
     });
