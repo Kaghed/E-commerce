@@ -79,7 +79,6 @@ class AdminController extends Controller
 
         $users = User::whereNotNull('ban_reason')->paginate(10);
 
-
         return response()->json([
             'users' => UserResource::collection($users),
 
@@ -90,6 +89,26 @@ class AdminController extends Controller
                 'total' => $users->total(),
             ]
         ]);
+
+    }
+
+    public function checkIfUserBlocked(int $user_id){
+
+       $user = User::where('id', $user_id)->firstOrFail();
+
+       if($user->banned_until > now()){
+            return response()->json([
+               'message'=> 'This user is blocked',
+                'banned until' => $user->banned_until,
+                'ban_reason'=> $user->ban_reason
+            ], 200);
+       }
+
+       if (!$user->banned_until && $user->ban_reason !=null) {
+            $user->ban_reason = null;
+        }
+
+        return response()->json('This user is not banned', 403);
 
     }
 }
