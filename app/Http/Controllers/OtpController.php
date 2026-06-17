@@ -30,11 +30,11 @@ class OtpController extends Controller
     public function verify(Request $request)
     {
         $data = $this->otpService->verify($request);
-        $status= 404;
-        if($data['success']==1)
-        $status = 200;
+        // $status= 404;
+        // if($data['success']==1)
+        // $status = 200;
         return response()->json([
             'message' => $data['message']
-        ], $status);
+        ], $data['status']);
     }
 }

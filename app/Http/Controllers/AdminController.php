@@ -46,7 +46,7 @@ class AdminController extends Controller
             'banned_until' => now()->addDays(3)
         ]);
 
-        $user->currentAccessToken()->delete();
+        $user->tokens()->delete();
         return response()->json([
             'message' => 'User banned successfully',
             'banned_until' => $user->banned_until
