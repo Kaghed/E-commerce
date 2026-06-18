@@ -9,12 +9,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\SellerMiddleware;
 use App\Http\Controllers\SellerController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\WalletController;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\CustomerMiddleware;
 use Illuminate\Foundation\Configuration\Middleware;
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
 
 
 Route::post('/otp/send', [OtpController::class, 'send']);
@@ -35,7 +33,7 @@ Route::middleware("auth:sanctum")->group(function () {
 
     Route::post('updateProfile', [ProfileController::class, 'update']);
 
-    Route::middleware("admin")->group(function () {
+    Route::middleware("role:admin")->group(function () {
 
         Route::get('/showUsers', [AdminController::class, 'showUsers']);
 
@@ -60,12 +58,23 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::get('/products/search', [ProductController::class, 'searchProducts']);
     Route::get('/products/searchByProductUrl', [ProductController::class, 'searchProductsByProductUrl']);
 
+    Route::middleware("role:seller")->group(function () {
+        Route::post('/products', [SellerController::class, 'createProduct']);
+        Route::put('/products/{id}', [SellerController::class, 'updateProduct']);
+        Route::delete('/products/{id}', [SellerController::class, 'deleteProduct']);
+    });
+
+    Route::middleware('role:customer,seller')->group(function () {
+
+        Route::post('/changePin', [WalletController::class, 'changePin']);
+
+
+    });
+
 
 });
 
-Route::middleware("seller")->group(function () {
-    Route::post('/products', [SellerController::class, 'createProduct']);
-    Route::put('/products/{id}', [SellerController::class, 'updateProduct']);
-    Route::delete('/products/{id}', [SellerController::class, 'deleteProduct']);
-});
+
+
+
 

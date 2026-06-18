@@ -31,6 +31,7 @@ class RegisterRequest extends FormRequest
             'date_of_birth' => 'required|date',
             'profile_image_url' => 'required|image|mimes:webp,jpg,jpeg,png,gif|max:10000',
             'role' => 'required|string|max:10',
+            'wallet_pin' => 'required|numeric|digits:4'
         ];
     }
 }

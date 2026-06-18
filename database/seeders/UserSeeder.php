@@ -5,7 +5,8 @@ namespace Database\Seeders;
 use App\Models\Profile;
 use Illuminate\Database\Seeder;
 use App\Models\User;
-
+use App\Models\Wallet;
+use Illuminate\Support\Facades\Hash;
 class UserSeeder extends Seeder
 {
     /**
@@ -30,6 +31,7 @@ class UserSeeder extends Seeder
             'governorate'=>'Damascus',
             'profile_image_url' => 'images/profiles/profile1.jpg',
         ]);
+
         $token1 = $user->createToken('authToken')->plainTextToken;
 
         //** seller */
@@ -48,6 +50,12 @@ class UserSeeder extends Seeder
             'governorate' => 'Latakia',
             'profile_image_url' => 'images/profiles/profile2.jpg',
         ]);
+
+        Wallet::create([
+            'user_id'=>$user->id,
+            'balance'=>120.0,
+            'wallet_pin'=>Hash::make(1234)
+        ]);
         $token2 = $user->createToken('authToken')->plainTextToken;
 
         //** customer */
@@ -65,6 +73,13 @@ class UserSeeder extends Seeder
             'date_of_birth' => '1991-11-21',
             'profile_image_url' => 'images/profiles/profile3.jpg',
         ]);
+
+        Wallet::create([
+            'user_id'=>$user->id,
+            'balance' => 120.0,
+            'wallet_pin' => Hash::make(1234)
+        ]);
+        
         $token3 = $user->createToken('authToken')->plainTextToken;
 
         echo "admin: " . $token1 . PHP_EOL;

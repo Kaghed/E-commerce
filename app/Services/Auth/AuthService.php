@@ -37,9 +37,16 @@ class AuthService
                 'profile_image_url' => $profileImagePath,
             ]);
 
+           $wallet =  $user->wallet()->create([
+                'user_id'=> $user->id,
+                'balance' => 0.0,
+                'wallet_pin' => Hash::make($request->wallet_pin)
+            ]);
+
             return [
                 'user' => $user,
-                'profile' => $profile
+                'profile' => $profile,
+                'wallet_balance' => $wallet->balance
             ];
         });
     }
