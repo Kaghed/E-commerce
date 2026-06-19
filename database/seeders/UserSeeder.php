@@ -32,6 +32,12 @@ class UserSeeder extends Seeder
             'profile_image_url' => 'images/profiles/profile1.jpg',
         ]);
 
+        Wallet::create([
+            'user_id' => $user->id,
+            'balance' => 120.0,
+            'wallet_pin' => Hash::make(1234)
+        ]);
+
         $token1 = $user->createToken('authToken')->plainTextToken;
 
         //** seller */
@@ -79,7 +85,7 @@ class UserSeeder extends Seeder
             'balance' => 120.0,
             'wallet_pin' => Hash::make(1234)
         ]);
-        
+
         $token3 = $user->createToken('authToken')->plainTextToken;
 
         echo "admin: " . $token1 . PHP_EOL;
