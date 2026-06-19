@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\TransactionResource;
 use App\Http\Resources\UserResource;
+use App\Models\Product;
+use App\Models\Transaction;
 use App\Models\User;
+use App\Services\AdminService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
@@ -12,6 +16,11 @@ use function Illuminate\Support\minutes;
 
 class AdminController extends Controller
 {
+
+    public function __construct(
+        protected AdminService $adminService
+    ) {
+    }
     public function showUsers()
     {
         $users = User::paginate(10);
@@ -30,27 +39,13 @@ class AdminController extends Controller
 
     public function blockUser(Request $request){
 
-        $request->validate([
-            'user_id' => 'required|integer',
-            'ban_reason' => 'required|string|min:5|max:100',
-        ]);
+        $data = $this->adminService->blockUser($request);
 
-        $cur_user = Auth::user();
-        if($cur_user ->id == $request->user_id ){
-            return response()->json('You can\'t ban yourself', 403);
-        }
-            $user = User::where('id' , $request->user_id)->firstOrFail();
-
-        $user->update([
-            'ban_reason' => $request->ban_reason,
-            'banned_until' => now()->addDays(3)
-        ]);
-
-        $user->tokens()->delete();
         return response()->json([
-            'message' => 'User banned successfully',
-            'banned_until' => $user->banned_until
-        ], 200);
+            'message' => $data['message'],
+            'ban_reason' => $data['ban_reason'] ,
+            'banned_until' => $data['banned_until'] ,
+        ], $data['status']);
 
     }
 
@@ -105,10 +100,90 @@ class AdminController extends Controller
        }
 
        if (!$user->banned_until && $user->ban_reason !=null) {
-            $user->ban_reason = null;
+            $user->update([
+                'ban_reason' => null
+            ]);
         }
 
         return response()->json('This user is not banned', 403);
 
+    }
+
+    public function deleteProduct(Request $request){
+
+        $data = $request->validate([
+            'user_id' => 'required|string',
+            'product_id'=>'required|string',
+            'delete_reason'=> 'required|string|min:5'
+        ]);
+
+        $product = Product::where('id' , $request->product_id)->firstOrFail();
+
+        if($product->seller_id !=$request->user_id){
+            return response()->json('this product is not for this user', 403);
+
+        }
+
+    }
+
+    public function getTransactions(){
+
+        $transactions = Transaction::paginate(10);
+
+
+        return response()->json([
+       'transactions' => TransactionResource::collection($transactions),
+
+            'pagination' => [
+                'current_page' => $transactions->currentPage(),
+                'last_page' => $transactions->lastPage(),
+                'per_page' => $transactions->perPage(),
+                'total' => $transactions->total(),
+            ]
+        ]);
+    }
+
+    public function handleDepositTransaction(Request $request, int $transaction_id)
+    {
+        $request->validate([
+            'status' => 'required|string|in:approved,cancelled',
+        ]);
+
+        $transaction = Transaction::findOrFail($transaction_id);
+
+        if ($transaction->type !== 'deposit') {
+            return response()->json([
+                'message' => 'This is not a deposit transaction'
+            ], 400);
+        }
+
+        if ($transaction->status !== 'pending') {
+            return response()->json([
+                'message' => 'Transaction already processed'
+            ], 400);
+        }
+
+        if ($request->status === 'approved') {
+
+            $wallet = $transaction->wallet;
+
+            $wallet->increment('balance', $transaction->amount);
+
+            $transaction->update([
+                'status' => 'completed',
+            ]);
+
+            return response()->json([
+                'message' => 'Deposit approved successfully'
+            ]);
+        }
+
+        $transaction->delete();
+    
+
+
+        return response()->json([
+            'message' => 'Deposit cancelled '
+        ]);
     }
 }
