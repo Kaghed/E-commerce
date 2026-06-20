@@ -11,7 +11,6 @@ class TransactionController extends Controller
     public function deposit(Request $request){
 
         $request->validate([
-            'amount' => 'required|numeric|min:1',
             'transfer_number'=>'required|string'
         ]);
 
@@ -22,7 +21,6 @@ class TransactionController extends Controller
             'type' => 'deposit',
             'status' => 'pending',
             'description'=>'transfer number = ' . $request->transfer_number,
-            'amount' => $request->amount
         ]);
 
         return response()->json('Transaction created, and now it is pending', 200);

@@ -48,8 +48,9 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get('/getBlockedUsers', [AdminController::class, 'getBlockedUsers']);
         //
         Route::get('/checkIfUserBlocked/{id}', [AdminController::class, 'checkIfUserBlocked']);
-         //
-        Route::get('getTransactions', [AdminController::class, 'getTransactions']);
+
+        Route::post('getTransactionsByType', [AdminController::class, 'getTransactionsByType']);
+        Route::post('getTransactionsByStatus', [AdminController::class, 'getTransactionsByStatus']);
         Route::post('handleDepositTransaction/{id}', [AdminController::class, 'handleDepositTransaction']);
 
     });

@@ -11,6 +11,7 @@ use App\Services\AdminService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
+use Psr\Http\Message\RequestInterface;
 
 use function Illuminate\Support\minutes;
 
@@ -126,13 +127,38 @@ class AdminController extends Controller
 
     }
 
-    public function getTransactions(){
+    public function getTransactionsByType(Request $request){
 
-        $transactions = Transaction::paginate(10);
+        $request->validate([
+            'type' => 'required|in:deposit,withdraw'
+        ]);
 
+        $transactions = Transaction::where('type', $request->type)->paginate(10);
 
         return response()->json([
        'transactions' => TransactionResource::collection($transactions),
+
+            'pagination' => [
+                'current_page' => $transactions->currentPage(),
+                'last_page' => $transactions->lastPage(),
+                'per_page' => $transactions->perPage(),
+                'total' => $transactions->total(),
+            ]
+        ]);
+    }
+
+
+    public function getTransactionsByStatus(Request $request)
+    {
+
+        $request->validate([
+            'status' => 'required|in:pending,completed'
+        ]);
+
+        $transactions = Transaction::where('status', $request->status)->paginate(10);
+
+        return response()->json([
+            'transactions' => TransactionResource::collection($transactions),
 
             'pagination' => [
                 'current_page' => $transactions->currentPage(),
@@ -147,6 +173,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'status' => 'required|string|in:approved,cancelled',
+            'amount' =>'required|string'
         ]);
 
         $transaction = Transaction::findOrFail($transaction_id);
@@ -167,10 +194,11 @@ class AdminController extends Controller
 
             $wallet = $transaction->wallet;
 
-            $wallet->increment('balance', $transaction->amount);
+            $wallet->increment('balance', $request->amount);
 
             $transaction->update([
                 'status' => 'completed',
+                'amount' => $request->amount
             ]);
 
             return response()->json([
@@ -179,8 +207,6 @@ class AdminController extends Controller
         }
 
         $transaction->delete();
-    
-
 
         return response()->json([
             'message' => 'Deposit cancelled '
