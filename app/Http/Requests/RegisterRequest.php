@@ -29,8 +29,9 @@ class RegisterRequest extends FormRequest
             'last_name' => 'required|string|max:255',
             'governorate'=>'required|string|max:255',
             'date_of_birth' => 'required|date',
-            'profile_image_url' => 'required|image|mimes:webp,jpg,jpeg,png,gif|max:10000',
+            'profile_image' => 'required|image|mimes:webp,jpg,jpeg,png,gif|max:10000',
             'role' => 'required|string|max:10',
+            'identity_image' => 'required_if:role,seller|image|mimes:webp,jpg,jpeg,png|max:10000',
             'wallet_pin' => 'required|numeric|digits:4'
         ];
     }

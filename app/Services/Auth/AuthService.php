@@ -26,8 +26,15 @@ class AuthService
                 'role' => $request->role
             ]);
 
-            $profileImagePath = $request->file('profile_image_url')
+            $profileImagePath = $request->file('profile_image')
                 ->store('profiles', 'public');
+                
+            $identityImagePath = null;
+
+            if ($request->hasFile('identity_image')) {
+                $identityImagePath = $request->file('identity_image')
+                    ->store('identities', 'public');
+            }
 
             $profile = $user->profile()->create([
                 'first_name'=> $request->first_name,
@@ -35,6 +42,7 @@ class AuthService
                 'governorate'=>$request->governorate,
                 'date_of_birth' => $request->date_of_birth,
                 'profile_image_url' => $profileImagePath,
+                'identity_image_url' => $identityImagePath
             ]);
 
            $wallet =  $user->wallet()->create([

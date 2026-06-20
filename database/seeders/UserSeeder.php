@@ -54,7 +54,8 @@ class UserSeeder extends Seeder
             'last_name' =>'Alkhateb',
             'date_of_birth' => '1998-07-05',
             'governorate' => 'Latakia',
-            'profile_image_url' => 'images/profiles/profile2.jpg',
+            'profile_image_url' => 'profiles/profile2.jpg',
+            'identity_image_url' => 'identities/identity2.jpg'
         ]);
 
         Wallet::create([
