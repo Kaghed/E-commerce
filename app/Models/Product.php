@@ -10,6 +10,8 @@ class Product extends Model
         'seller_id',
         'category_id',
         'title',
+        'is_active',
+        'governorate',
         'description',
         'price',
         'quantity',
@@ -25,5 +27,10 @@ class Product extends Model
     public function seller()
     {
         return $this->belongsTo(User::class, 'seller_id');
+    }
+
+    public function favoriters()
+    {
+        return $this->belongsToMany(User::class,'favorites','product_id','user_id')->withTimestamps();
     }
 }

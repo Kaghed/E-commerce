@@ -29,7 +29,9 @@ class UpdateProductRequest extends FormRequest
             'quantity' => 'sometimes|integer|min:0',
             'product_image_url' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
             'product_url' => 'sometimes|string|max:255|unique:products,product_url',
-            'category_id' => 'sometimes|exists:categories,id'
+            'governorate' => 'sometimes|in:' . implode(',', array_column(\App\Enums\Governorate::cases(), 'value')),
+            'category_id' => 'sometimes|exists:categories,id',
+            'is_active' => 'sometimes|boolean'
         ];
     }
 }
