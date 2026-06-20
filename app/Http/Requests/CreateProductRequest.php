@@ -29,6 +29,7 @@ class CreateProductRequest extends FormRequest
             'quantity' => 'required|integer|min:0',
             'product_image_url' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'product_url' => 'nullable|string|max:255|unique:products,product_url',
+            'governorate' => 'required|in:' . implode(',', array_column(\App\Enums\Governorate::cases(), 'value')),
             'category_id' => 'required|exists:categories,id'
         ];
     }

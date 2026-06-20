@@ -45,4 +45,8 @@ class User extends Authenticatable
         return $this->hasOne(Wallet::class);
     }
 
+    public function favoriteProducts(){
+        return $this->belongsToMany(Product::class,'favorites','user_id','product_id')->withTimestamps();
+    }
+
 }

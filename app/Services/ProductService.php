@@ -21,6 +21,7 @@ class ProductService
             'description' => $request->description,
             'price' => $request->price,
             'quantity' => $request->quantity,
+            'governorate' => $request->governorate,
             'product_image_url' => $request->file('product_image_url')
                 ->store('products', 'public'),
             'product_url' => Str::uuid()
