@@ -17,7 +17,7 @@ return new class extends Migration
             $table->enum('type', ['deposit','withdraw','payment']);
             $table->enum('status', ['pending', 'completed', 'cancelled']);
             $table->text('description');
-            $table->decimal('amount', 8, 2);
+            $table->decimal('amount', 8, 2)->nullable();
             $table->timestamps();
         });
     }
