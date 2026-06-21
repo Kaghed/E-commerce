@@ -57,7 +57,7 @@ Route::middleware("auth:sanctum")->group(function () {
     });
 
 
-  
+
 
     //* Seller
     Route::middleware("role:seller")->group(function () {
@@ -79,7 +79,7 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post('/addToFavorites/{id}', [CustomerController::class, 'addToFavorites']);
         Route::post('/removeFromFavorites/{id}', [CustomerController::class, 'removeFromFavorites']);
         Route::get('/getFavoriteProducts', [CustomerController::class, 'getFavoriteTasks']);
-  
+
      });
 
 
@@ -102,9 +102,8 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::put('/markasread/{id}', [NotificationController::class,'MarkAsRead']);
         Route::delete('/deleteNotification/{id}', [NotificationController::class, 'deleteNotification']);
 
-        //test 
-        Route::post('/sendNotification', [UserController::class, '
-        ']);
+        //test
+        Route::post('/sendNotification', [UserController::class, 'sendNotification']);
 
 
  });
