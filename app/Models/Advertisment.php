@@ -9,6 +9,11 @@ class Advertisment extends Model
     protected $guarded = ['id'];
 
     public function transaction(){
-        return $this->hasOne(Transaction::class);
+        return $this->belongsTo(Transaction::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

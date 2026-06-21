@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('wallet_id')->constrained('wallets')->onDelete('cascade');
             $table->enum('type', ['deposit','withdraw','payment' ,'refund']);
-            $table->enum('status', ['pending', 'completed', 'cancelled']);
+            $table->enum('status', ['pending', 'completed']);
             $table->text('description');
             $table->decimal('amount', 8, 2)->nullable();
             $table->timestamps();

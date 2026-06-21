@@ -14,12 +14,13 @@ return new class extends Migration
     {
         Schema::create('advertisments', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('transaction_id')->constrained('transactions')->cascadeOnDelete();
             $table->string('title');
             $table->enum('governorate', array_column(Governorate::cases(), 'value'));
+            $table->enum('status', ['pending', 'approved','declined']);
             $table->string('phone_number');
             $table->text('description');
-            $table->enum('status', ['pending', 'approved', 'cancelled']);
             $table->timestamps();
         });
     }

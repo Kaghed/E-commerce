@@ -3,12 +3,11 @@
 namespace App\Http\Requests;
 
 use App\Enums\Governorate;
-
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
-class UpdateProfileRequest extends FormRequest
+class CreateAdRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,12 +25,13 @@ class UpdateProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => 'sometimes|string|max:255',
-            'last_name' => 'sometimes|string|max:255',
-            'date_of_birth' => 'sometimes|date',
-            'profile_image' => 'sometimes|image|mimes:png,webp,jpg,jpeg,gif|max:10000',
-            'governorate' => ['sometimes' ,
-             new Enum(Governorate::class)]
+            'title'=> 'required|string',
+            'phone_number' => 'required|regex:/^09[0-9]{8}$/',
+            'description'=>'required|string',
+            'governorate'=>['required',
+                new Enum(Governorate::class)
+        ],
+            'amount'=>'required|numeric'
         ];
     }
 }

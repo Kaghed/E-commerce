@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdvertismentController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -54,6 +55,9 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post('getTransactionsByStatus', [AdminController::class, 'getTransactionsByStatus']);
         Route::post('handleDepositTransaction/{id}', [AdminController::class, 'handleDepositTransaction']);
 
+        Route::post('handleAd/{id}', [AdminController::class, 'handleAdvertisment']);
+        Route::post('/getAdsByStatus', [AdminController::class, 'getAdsByStatus']);
+
     });
 
 
@@ -87,8 +91,9 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::middleware('role:customer,seller')->group(function () {
 
         Route::post('/changePin', [WalletController::class, 'changePin']);
-
-
+        Route::post('/createAd', [AdvertismentController::class, 'createAd']);
+        Route::post('/deleteAd/{id}', [AdvertismentController::class, 'deleteAd']);
+        Route::post('/getMyAdsByStatus', [AdvertismentController::class, 'getMyAdsByStatus']);
 
 
     Route::get('/showallproducts', [ProductController::class, 'showAllProducts']);

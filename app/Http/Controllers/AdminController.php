@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\AdvertismentResource;
 use App\Http\Resources\TransactionResource;
 use App\Http\Resources\UserResource;
+use App\Models\Advertisment;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\User;
@@ -11,7 +13,9 @@ use App\Services\AdminService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Psr\Http\Message\RequestInterface;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
 use function Illuminate\Support\minutes;
 
@@ -211,5 +215,84 @@ class AdminController extends Controller
         return response()->json([
             'message' => 'Deposit cancelled '
         ]);
+    }
+
+
+    public function handleAdvertisment(Request $request , int $ad_id){
+
+        return DB::transaction(function () use ($request , $ad_id) {
+
+        $request->validate([
+            'status' => 'required|in:approved,declined',
+            'reason' => 'required|string'
+        ]);
+
+        $ad = Advertisment::findOrFail($ad_id);
+
+
+            if ($ad->status != 'pending') {
+                return response()->json(
+                'This is not a pending ad'
+                , 403);
+            }
+
+            $amount = $ad->transaction->amount;
+
+            if ($request->status == 'approved') {
+
+                $ad->update([
+                    'status' => 'approved'
+                ]);
+
+                $admin = Auth::user();
+                $admin->wallet->increment('balance', $amount);
+
+                return response()->json('Ad now is approved', 200);
+            }
+
+
+            $user = $ad->user;
+
+            $user->wallet->increment('balance', $amount);
+
+            $ad->update([
+                'status' => 'declined'
+            ]);
+
+            Transaction::create([
+                'wallet_id' => $user->wallet->id,
+                'type' => 'refund',
+                'amount' => $amount,
+                'status' => 'completed',
+                'description' => $request->reason,
+            ]);
+
+            return response()->json('Add declined', 201);
+        });
+    }
+
+
+    public function getAdsByStatus(Request $request)
+    {
+
+        $request->validate([
+            'status' => 'required|string|in:pending,approved,declined'
+        ]);
+
+        $ads = Advertisment::where('status', $request->status)
+            ->paginate(10);
+
+
+        return response()->json([
+            'transactions' => AdvertismentResource::collection($ads),
+
+            'pagination' => [
+                'current_page' => $ads->currentPage(),
+                'last_page' => $ads->lastPage(),
+                'per_page' => $ads->perPage(),
+                'total' => $ads->total(),
+            ]
+        ]);
+
     }
 }

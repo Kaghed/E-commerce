@@ -14,6 +14,6 @@ class Transaction extends Model
     }
 
     public function advertisment(){
-        return $this->belongsTo(Advertisment::class);
+        return $this->hasOne(Advertisment::class);
     }
 }
