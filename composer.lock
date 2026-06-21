@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f47c64c145092ea521c1b33d3a704ca2",
+    "content-hash": "b44f1726b197b165a3fa7cc06d983b21",
     "packages": [
         {
             "name": "beste/clock",
@@ -2097,16 +2097,16 @@
         },
         {
             "name": "kreait/laravel-firebase",
-            "version": "7.2.1",
+            "version": "7.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/beste/laravel-firebase.git",
-                "reference": "a9f63c54089c9a5aa7bce5cabd9a57b2dcbeed64"
+                "reference": "0be51a3a3a0f3b10fafa5061283d10b76bf20ec9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/beste/laravel-firebase/zipball/a9f63c54089c9a5aa7bce5cabd9a57b2dcbeed64",
-                "reference": "a9f63c54089c9a5aa7bce5cabd9a57b2dcbeed64",
+                "url": "https://api.github.com/repos/beste/laravel-firebase/zipball/0be51a3a3a0f3b10fafa5061283d10b76bf20ec9",
+                "reference": "0be51a3a3a0f3b10fafa5061283d10b76bf20ec9",
                 "shasum": ""
             },
             "require": {
@@ -2160,7 +2160,7 @@
             ],
             "support": {
                 "issues": "https://github.com/beste/laravel-firebase/issues",
-                "source": "https://github.com/beste/laravel-firebase/tree/7.2.1"
+                "source": "https://github.com/beste/laravel-firebase/tree/7.2.0"
             },
             "funding": [
                 {
@@ -2168,7 +2168,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-05-07T13:39:14+00:00"
+            "time": "2026-05-07T08:40:28+00:00"
         },
         {
             "name": "laravel/framework",
