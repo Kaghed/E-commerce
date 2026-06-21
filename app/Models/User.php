@@ -49,4 +49,12 @@ class User extends Authenticatable
         return $this->belongsToMany(Product::class,'favorites','user_id','product_id')->withTimestamps();
     }
 
+     public function deviceTokens()
+    {
+        return $this->hasMany(DeviceToken::class);
+    }
+   public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
 }

@@ -12,12 +12,15 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Services\Auth\AuthService;
 use App\Services\Auth\OtpService;
+use App\Services\FirebaseNotificationService;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 
 class UserController extends Controller
 {
     public function __construct(
         protected AuthService $authService,
-           protected OtpService $otpService
+           protected OtpService $otpService ,
+           protected FirebaseNotificationService $firebase
     ) {}
 
     function register(RegisterRequest $request)
@@ -63,4 +66,23 @@ class UserController extends Controller
             'message' => $data['message']
         ], $status);
     }    
+
+
+// test 
+    public function sendNotification(Request $request){
+        
+      $user = FacadesAuth::user();
+        $request->validate([
+            'title'=>'required|string',
+            'body'=>'required|string',
+        
+        ]);
+
+       $this->firebase->sendToUser($user->id, $request->title, $request->body);
+
+        return response()->json([
+            'message'=>'Notification sent successfully.'
+        ]);
+}
+
 }

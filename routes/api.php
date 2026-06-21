@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Middleware\SellerMiddleware;
 use App\Http\Controllers\SellerController;
 use App\Http\Controllers\ProductController;
@@ -56,13 +57,7 @@ Route::middleware("auth:sanctum")->group(function () {
     });
 
 
-    Route::get('/showallproducts', [ProductController::class, 'showAllProducts']);
-
-    Route::get('/products/{category_id}/categories', [ProductController::class, 'getProductByCategory']);
-
-    Route::get('/products/searchByProductUrl', [ProductController::class, 'searchProductsByProductUrl']);
-
-    Route::get('/products/filter', [ProductController::class, 'filterProducts']);
+  
 
     //* Seller
     Route::middleware("role:seller")->group(function () {
@@ -94,12 +89,22 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post('/changePin', [WalletController::class, 'changePin']);
 
 
+
+
+    Route::get('/showallproducts', [ProductController::class, 'showAllProducts']);
+    Route::get('/products/{category_id}/categories', [ProductController::class, 'getProductByCategory']);
+    Route::get('/products/searchByProductUrl', [ProductController::class, 'searchProductsByProductUrl']);
+    Route::get('/products/filter', [ProductController::class, 'filterProducts']);
+
     });
 
+        Route::get('/getAllMynotification', [NotificationController::class, 'Allnotification']);
+        Route::put('/markasread/{id}', [NotificationController::class,'MarkAsRead']);
+        Route::delete('/deleteNotification/{id}', [NotificationController::class, 'deleteNotification']);
 
-});
+        //test 
+        Route::post('/sendNotification', [UserController::class, '
+        ']);
 
 
-
-
-
+ });

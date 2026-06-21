@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\DeviceToken;
 use App\Models\Profile;
 use Illuminate\Database\Seeder;
 use App\Models\User;
@@ -38,6 +39,10 @@ class UserSeeder extends Seeder
             'wallet_pin' => Hash::make(1234)
         ]);
 
+        DeviceToken::Create([
+               'user_id' => $user->id,
+               'token' => 'f4lH24G78vO6keX8Ksxt6e:APA91bEhhLEff2jxjQ3dVC0sEDQsqUUgHh6q1KLKLG1RsQ5_aeoREu6qwBG-DZj6QjhtNyFCpF0VXPuf7ib-uuro6_EIdI9tR5vR4hKfiWFJRAUv5E0vVFo'
+                ]);
         $token1 = $user->createToken('authToken')->plainTextToken;
 
         //** seller */
@@ -63,6 +68,7 @@ class UserSeeder extends Seeder
             'balance'=>120.0,
             'wallet_pin'=>Hash::make(1234)
         ]);
+
         $token2 = $user->createToken('authToken')->plainTextToken;
 
         //** customer */

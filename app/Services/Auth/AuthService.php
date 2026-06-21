@@ -4,11 +4,13 @@ namespace App\Services\Auth;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Models\DeviceToken;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+
 
 class AuthService
 {
@@ -49,6 +51,12 @@ class AuthService
                 'user_id'=> $user->id,
                 'balance' => 0.0,
                 'wallet_pin' => Hash::make($request->wallet_pin)
+            ]);
+
+             $getToken = DeviceToken::Create([
+               'user_id' => $user->id,
+               'token' => $request->token
+    
             ]);
 
             return [
