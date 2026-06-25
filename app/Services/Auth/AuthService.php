@@ -53,7 +53,7 @@ class AuthService
                 'wallet_pin' => Hash::make($request->wallet_pin)
             ]);
 
-             $getToken = DeviceToken::Create([
+              DeviceToken::Create([
                'user_id' => $user->id,
                'token' => $request->token
     

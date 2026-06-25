@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdvertismentController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -83,6 +84,14 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post('/addToFavorites/{id}', [CustomerController::class, 'addToFavorites']);
         Route::post('/removeFromFavorites/{id}', [CustomerController::class, 'removeFromFavorites']);
         Route::get('/getFavoriteProducts', [CustomerController::class, 'getFavoriteTasks']);
+      
+        Route::prefix('cart')->group(function () {
+            
+          Route::get('/', [CartController::class, 'index']);
+          Route::post('/items', [CartController::class, 'addItem']);
+          Route::put('/items/{cartItemId}', [CartController::class, 'updateItem']);
+          Route::delete('/items/{cartItemId}', [CartController::class, 'removeItem']);
+});
 
      });
 
