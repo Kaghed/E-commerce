@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\AdvertismentResource;
+use App\Http\Resources\SupportResource;
 use App\Http\Resources\TransactionResource;
 use App\Http\Resources\UserResource;
 use App\Models\Advertisment;
 use App\Models\Product;
+use App\Models\SupportRequest;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\AdminService;
@@ -42,19 +44,21 @@ class AdminController extends Controller
         ]);
     }
 
-    public function blockUser(Request $request){
+    public function blockUser(Request $request)
+    {
 
         $data = $this->adminService->blockUser($request);
 
         return response()->json([
             'message' => $data['message'],
-            'ban_reason' => $data['ban_reason'] ,
-            'banned_until' => $data['banned_until'] ,
+            'ban_reason' => $data['ban_reason'],
+            'banned_until' => $data['banned_until'],
         ], $data['status']);
 
     }
 
-    public function unBlockUser(int $user_id){
+    public function unBlockUser(int $user_id)
+    {
 
         $cur_user = Auth::user();
         if ($cur_user->id == $user_id) {
@@ -62,7 +66,7 @@ class AdminController extends Controller
         }
         $user = User::where('id', $user_id)->firstOrFail();
 
-        if(!$user->banned_until){
+        if (!$user->banned_until) {
             return response()->json('This user is not banned', 403);
         }
         $user->update([
@@ -75,7 +79,8 @@ class AdminController extends Controller
         ], 200);
     }
 
-    public function getBlockedUsers(){
+    public function getBlockedUsers()
+    {
 
         $users = User::whereNotNull('ban_reason')->paginate(10);
 
@@ -92,19 +97,20 @@ class AdminController extends Controller
 
     }
 
-    public function checkIfUserBlocked(int $user_id){
+    public function checkIfUserBlocked(int $user_id)
+    {
 
-       $user = User::where('id', $user_id)->firstOrFail();
+        $user = User::where('id', $user_id)->firstOrFail();
 
-       if($user->banned_until > now()){
+        if ($user->banned_until > now()) {
             return response()->json([
-               'message'=> 'This user is blocked',
+                'message' => 'This user is blocked',
                 'banned until' => $user->banned_until,
-                'ban_reason'=> $user->ban_reason
+                'ban_reason' => $user->ban_reason
             ], 200);
-       }
+        }
 
-       if (!$user->banned_until && $user->ban_reason !=null) {
+        if (!$user->banned_until && $user->ban_reason != null) {
             $user->update([
                 'ban_reason' => null
             ]);
@@ -114,24 +120,26 @@ class AdminController extends Controller
 
     }
 
-    public function deleteProduct(Request $request){
+    public function deleteProduct(Request $request)
+    {
 
         $data = $request->validate([
             'user_id' => 'required|string',
-            'product_id'=>'required|string',
-            'delete_reason'=> 'required|string|min:5'
+            'product_id' => 'required|string',
+            'delete_reason' => 'required|string|min:5'
         ]);
 
-        $product = Product::where('id' , $request->product_id)->firstOrFail();
+        $product = Product::where('id', $request->product_id)->firstOrFail();
 
-        if($product->seller_id !=$request->user_id){
+        if ($product->seller_id != $request->user_id) {
             return response()->json('this product is not for this user', 403);
 
         }
 
     }
 
-    public function getTransactionsByType(Request $request){
+    public function getTransactionsByType(Request $request)
+    {
 
         $request->validate([
             'type' => 'required|in:deposit,withdraw'
@@ -140,7 +148,7 @@ class AdminController extends Controller
         $transactions = Transaction::where('type', $request->type)->paginate(10);
 
         return response()->json([
-       'transactions' => TransactionResource::collection($transactions),
+            'transactions' => TransactionResource::collection($transactions),
 
             'pagination' => [
                 'current_page' => $transactions->currentPage(),
@@ -177,7 +185,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'status' => 'required|string|in:approved,cancelled',
-            'amount' =>'required|string'
+            'amount' => 'required|string'
         ]);
 
         $transaction = Transaction::findOrFail($transaction_id);
@@ -218,22 +226,25 @@ class AdminController extends Controller
     }
 
 
-    public function handleAdvertisment(Request $request , int $ad_id){
+    public function handleAdvertisment(Request $request, int $ad_id)
+    {
 
-        return DB::transaction(function () use ($request , $ad_id) {
+        return DB::transaction(function () use ($request, $ad_id) {
 
-        $request->validate([
-            'status' => 'required|in:approved,declined',
-            'reason' => 'required|string'
-        ]);
+            $request->validate([
+                'status' => 'required|in:approved,declined',
+                'reason' => 'required|string'
+            ]);
 
-        $ad = Advertisment::findOrFail($ad_id);
+            $ad = Advertisment::findOrFail($ad_id);
 
 
             if ($ad->status != 'pending') {
                 return response()->json(
-                'This is not a pending ad'
-                , 403);
+                    'This is not a pending ad'
+                    ,
+                    403
+                );
             }
 
             $amount = $ad->transaction->amount;
@@ -295,4 +306,45 @@ class AdminController extends Controller
         ]);
 
     }
+
+    public function getQuestionsByStatus(Request $request)
+    {
+
+        $request->validate([
+            'status' => 'required|in:pending,answered'
+        ]);
+
+        $questions = SupportRequest::where('status', $request->status)->paginate(10);
+
+        return response()->json([
+            'questions' => SupportResource::collection($questions),
+
+            'pagination' => [
+                'current_page' => $questions->currentPage(),
+                'last_page' => $questions->lastPage(),
+                'per_page' => $questions->perPage(),
+                'total' => $questions->total(),
+            ]
+        ]);
+    }
+
+    public function handleQuestion(Request $request , int $question_id){
+
+        $request->validate([
+            'answer' => 'required|string|min:1|max:255'
+        ]);
+
+        $question = SupportRequest::findOrFail($question_id);
+
+        if($question->status !='pending'){
+            return response()->json('question already answered', 401);
+        }
+
+        $question->status = 'answered';
+        $question->answer = $request->answer;
+        $question->save();
+
+        return response()->json('question answered successfully', 200);
+    }
+
 }

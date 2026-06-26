@@ -63,4 +63,8 @@ class User extends Authenticatable
         return $this->hasMany(Advertisment::class);
     }
 
+    public function supportRequests(){
+        return $this->hasMany(SupportRequest::class);
+    }
+
 }

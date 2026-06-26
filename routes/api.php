@@ -13,6 +13,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Middleware\SellerMiddleware;
 use App\Http\Controllers\SellerController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SupportRequestController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\WalletController;
 use App\Http\Middleware\AdminMiddleware;
@@ -36,7 +37,7 @@ Route::middleware("auth:sanctum")->group(function () {
 
     Route::post('/forgotPassword', [UserController::class, 'forgotPassword']);
     Route::post('/changePassword', [ProfileController::class, 'changePassword']);
-//
+    //
     Route::post('updateProfile', [ProfileController::class, 'update']);
 
     //* Admin
@@ -58,6 +59,9 @@ Route::middleware("auth:sanctum")->group(function () {
 
         Route::post('handleAd/{id}', [AdminController::class, 'handleAdvertisment']);
         Route::post('/getAdsByStatus', [AdminController::class, 'getAdsByStatus']);
+
+        Route::post('/getQuestionsByStatus', [AdminController::class, 'getQuestionsByStatus']);
+        Route::post('/handleQuestion/{id}', [AdminController::class, 'handleQuestion']);
 
     });
 
@@ -84,16 +88,16 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post('/addToFavorites/{id}', [CustomerController::class, 'addToFavorites']);
         Route::post('/removeFromFavorites/{id}', [CustomerController::class, 'removeFromFavorites']);
         Route::get('/getFavoriteProducts', [CustomerController::class, 'getFavoriteTasks']);
-      
-        Route::prefix('cart')->group(function () {
-            
-          Route::get('/', [CartController::class, 'index']);
-          Route::post('/items', [CartController::class, 'addItem']);
-          Route::put('/items/{cartItemId}', [CartController::class, 'updateItem']);
-          Route::delete('/items/{cartItemId}', [CartController::class, 'removeItem']);
-});
 
-     });
+        Route::prefix('cart')->group(function () {
+
+            Route::get('/', [CartController::class, 'index']);
+            Route::post('/items', [CartController::class, 'addItem']);
+            Route::put('/items/{cartItemId}', [CartController::class, 'updateItem']);
+            Route::delete('/items/{cartItemId}', [CartController::class, 'removeItem']);
+        });
+
+    });
 
 
     //* Seller, Customer
@@ -104,20 +108,22 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post('/deleteAd/{id}', [AdvertismentController::class, 'deleteAd']);
         Route::post('/getMyAdsByStatus', [AdvertismentController::class, 'getMyAdsByStatus']);
 
+        Route::post('/askQuestion', [SupportRequestController::class, 'askQuestion']);
+        Route::post('/getMyQuestionsByStatus', [SupportRequestController::class, 'getMyQuestionsByStatus']);
 
-    Route::get('/showallproducts', [ProductController::class, 'showAllProducts']);
-    Route::get('/products/{category_id}/categories', [ProductController::class, 'getProductByCategory']);
-    Route::get('/products/searchByProductUrl', [ProductController::class, 'searchProductsByProductUrl']);
-    Route::get('/products/filter', [ProductController::class, 'filterProducts']);
+        Route::get('/showallproducts', [ProductController::class, 'showAllProducts']);
+        Route::get('/products/{category_id}/categories', [ProductController::class, 'getProductByCategory']);
+        Route::get('/products/searchByProductUrl', [ProductController::class, 'searchProductsByProductUrl']);
+        Route::get('/products/filter', [ProductController::class, 'filterProducts']);
 
     });
 
-        Route::get('/getAllMynotification', [NotificationController::class, 'Allnotification']);
-        Route::put('/markasread/{id}', [NotificationController::class,'MarkAsRead']);
-        Route::delete('/deleteNotification/{id}', [NotificationController::class, 'deleteNotification']);
+    Route::get('/getAllMynotification', [NotificationController::class, 'Allnotification']);
+    Route::put('/markasread/{id}', [NotificationController::class, 'MarkAsRead']);
+    Route::delete('/deleteNotification/{id}', [NotificationController::class, 'deleteNotification']);
 
-        //test
-        Route::post('/sendNotification', [UserController::class, 'sendNotification']);
+    //test
+    Route::post('/sendNotification', [UserController::class, 'sendNotification']);
 
 
- });
+});
