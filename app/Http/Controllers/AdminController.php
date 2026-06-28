@@ -225,6 +225,53 @@ class AdminController extends Controller
         ]);
     }
 
+    public function handleWithdrawTransaction(Request $request, int $transaction_id)
+    {
+        $request->validate([
+            'status' => 'required|in:approved,cancelled'
+        ]);
+
+        $transaction = Transaction::findOrFail($transaction_id);
+
+        if ($transaction->type !== 'withdraw') {
+            return response()->json([
+                'message' => 'This is not a deposit transaction'
+            ], 400);
+        }
+
+        if ($transaction->status !== 'pending') {
+            return response()->json([
+                'message' => 'Transaction already processed'
+            ], 400);
+        }
+
+        $wallet = $transaction->wallet;
+
+        if ($request->status === 'approved') {
+
+            $user = Auth::user();
+            $user->wallet->balance += $transaction->amount * 0.01;
+            $user->wallet->save();
+
+            $transaction->update([
+                'status' => 'completed'
+            ]);
+
+            return response()->json([
+                'message' => 'Withdraw approved successfully'
+            ]);
+        }
+
+            $wallet->increment('balance', $transaction->amount);
+        $wallet->save();
+
+        $transaction->delete();
+
+        return response()->json([
+            'message' => 'Deposit cancelled '
+        ]);
+    }
+
 
     public function handleAdvertisment(Request $request, int $ad_id)
     {

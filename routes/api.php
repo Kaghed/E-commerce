@@ -56,6 +56,7 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post('getTransactionsByType', [AdminController::class, 'getTransactionsByType']);
         Route::post('getTransactionsByStatus', [AdminController::class, 'getTransactionsByStatus']);
         Route::post('handleDepositTransaction/{id}', [AdminController::class, 'handleDepositTransaction']);
+        Route::post('handleWithdrawTransaction/{id}', [AdminController::class, 'handleWithdrawTransaction']);
 
         Route::post('handleAd/{id}', [AdminController::class, 'handleAdvertisment']);
         Route::post('/getAdsByStatus', [AdminController::class, 'getAdsByStatus']);
@@ -85,6 +86,7 @@ Route::middleware("auth:sanctum")->group(function () {
     //* Customer
     Route::middleware("role:customer")->group(function () {
         Route::post('/deposit', [TransactionController::class, 'deposit']);
+
         Route::post('/addToFavorites/{id}', [CustomerController::class, 'addToFavorites']);
         Route::post('/removeFromFavorites/{id}', [CustomerController::class, 'removeFromFavorites']);
         Route::get('/getFavoriteProducts', [CustomerController::class, 'getFavoriteTasks']);
@@ -116,6 +118,7 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get('/products/searchByProductUrl', [ProductController::class, 'searchProductsByProductUrl']);
         Route::get('/products/filter', [ProductController::class, 'filterProducts']);
 
+        Route::post('/withdraw', [TransactionController::class, 'withdraw']);
     });
 
     Route::get('/getAllMynotification', [NotificationController::class, 'Allnotification']);
