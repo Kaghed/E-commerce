@@ -31,11 +31,11 @@ Route::post('/login', [UserController::class, 'login']);
 //
 Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
 
+Route::post('/forgotPassword', [UserController::class, 'forgotPassword']);
+
 Route::middleware("auth:sanctum")->group(function () {
 
-    Route::post('changePassword', [ProfileController::class, 'changePassword']);
 
-    Route::post('/forgotPassword', [UserController::class, 'forgotPassword']);
     Route::post('/changePassword', [ProfileController::class, 'changePassword']);
     //
     Route::post('updateProfile', [ProfileController::class, 'update']);
