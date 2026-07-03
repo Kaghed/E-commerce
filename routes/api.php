@@ -26,6 +26,7 @@ Route::post('/otp/send', [OtpController::class, 'send']);
 Route::post('/otp/verify', [OtpController::class, 'verify']);
 
 Route::post('/register', [UserController::class, 'register']);
+Route::post('/verifyRegister', [UserController::class, 'verifyRegister']);
 
 Route::post('/login', [UserController::class, 'login']);
 //

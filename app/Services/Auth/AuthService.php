@@ -2,17 +2,21 @@
 
 namespace App\Services\Auth;
 
+use App\Http\Controllers\OtpController;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\ProfileResource;
 use App\Http\Resources\UserResource;
+use App\Mail\OtpMail;
 use App\Models\DeviceToken;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Request as FacadesRequest;
 
 class AuthService
 {
@@ -22,53 +26,52 @@ class AuthService
     }
     public function register(RegisterRequest $request)
     {
-        return DB::transaction(function () use ($request) {
+        $otpRequest = new Request([
+            'email' => $request->email
+        ]);
 
-            $user = User::create([
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'role' => $request->role
-            ]);
+        $otp = app(OtpController::class)->send($otpRequest);
 
-            $profileImagePath = $request->file('profile_image')
-                ->store('profiles', 'public');
+        $profileImagePath = $request->file('profile_image')
+            ->store('temp/profiles', 'public');
 
-            $identityImagePath = null;
+        $identityImagePath = null;
 
-            if ($request->hasFile('identity_image')) {
-                $identityImagePath = $request->file('identity_image')
-                    ->store('identities', 'public');
-            }
+        if ($request->hasFile('identity_image')) {
+            $identityImagePath = $request->file('identity_image')
+                ->store('temp/identities', 'public');
+        }
 
-            $profile = $user->profile()->create([
-                'first_name'=> $request->first_name,
-                'last_name'=> $request->last_name,
-                'governorate'=>$request->governorate,
-                'date_of_birth' => $request->date_of_birth,
-                'profile_image_url' => $profileImagePath,
-                'identity_image_url' => $identityImagePath
-            ]);
+        $data = [
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => $request->role,
 
-           $wallet =  $user->wallet()->create([
-                'user_id'=> $user->id,
-                'balance' => 0.0,
-                'wallet_pin' => Hash::make($request->wallet_pin)
-            ]);
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'governorate' => $request->governorate,
+            'date_of_birth' => $request->date_of_birth,
 
-              DeviceToken::Create([
-               'user_id' => $user->id,
-               'token' => $request->token
+            'wallet_pin' => Hash::make($request->wallet_pin),
 
-            ]);
+            'profile_image' => $profileImagePath,
+            'identity_image' => $identityImagePath,
+        ];
 
-            return [
-                'user' => $user,
-                'profile' => $profile,
-                'wallet_balance' => $wallet->balance
-            ];
-        });
+        Cache::put(
+            'register_' . $request->email,
+            [
+                'otp' => $otp,
+                'data' => $data
+            ],
+            now()->addMinutes(10)
+        );
+
+        Mail::to($request->email)->send(new OtpMail($otp));
+
+        return true;
     }
-    public function login (LoginRequest $request){
+        public function login (LoginRequest $request){
 
         $user = User::where('email', $request->email)->firstOrFail();
 
