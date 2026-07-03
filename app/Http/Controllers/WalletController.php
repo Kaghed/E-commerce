@@ -24,8 +24,23 @@ class WalletController extends Controller
         $user->wallet->update([
             'wallet_pin' => Hash::make($request->new_pin)
         ]);
-        
+
         return response()->json(['pin changed successfuly',$request->new_pin] , 201);
+
+    }
+
+    public function checkPin(Request $request){
+        $request->validate([
+            'wallet_pin' => 'required|numeric|digits:4'
+        ]);
+
+        $user = Auth::user();
+
+        if(!Hash::check($request->wallet_pin , $user->wallet->wallet_pin)){
+            return response()->json('You entered wrong pin' , 403);
+        }
+
+        return response()->json('Your pin is correct' , 200);
 
     }
 }

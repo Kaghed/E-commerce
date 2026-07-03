@@ -106,6 +106,7 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::middleware('role:customer,seller')->group(function () {
 
         Route::post('/changePin', [WalletController::class, 'changePin']);
+        Route::post('/checkPin', [WalletController::class, 'checkPin']);
         Route::post('/createAd', [AdvertismentController::class, 'createAd']);
         Route::post('/deleteAd/{id}', [AdvertismentController::class, 'deleteAd']);
         Route::post('/getMyAdsByStatus', [AdvertismentController::class, 'getMyAdsByStatus']);
