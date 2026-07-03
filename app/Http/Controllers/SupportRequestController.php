@@ -42,7 +42,7 @@ class SupportRequestController extends Controller
         $questions = SupportRequest::where('user_id', $user->id)->where('status' , $request->status)->paginate(10);
 
         return response()->json([
-            'questions' => SupportResource::collection($questions),
+            'questions' => ,
 
             'pagination' => [
                 'current_page' => $questions->currentPage(),

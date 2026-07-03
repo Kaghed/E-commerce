@@ -4,6 +4,8 @@ namespace App\Services\Auth;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\ProfileResource;
+use App\Http\Resources\UserResource;
 use App\Models\DeviceToken;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -30,7 +32,7 @@ class AuthService
 
             $profileImagePath = $request->file('profile_image')
                 ->store('profiles', 'public');
-                
+
             $identityImagePath = null;
 
             if ($request->hasFile('identity_image')) {
@@ -56,7 +58,7 @@ class AuthService
               DeviceToken::Create([
                'user_id' => $user->id,
                'token' => $request->token
-    
+
             ]);
 
             return [
@@ -86,7 +88,10 @@ class AuthService
             $token = $user->createToken('auth_token')->plainTextToken;
 
         return [
+
             'message'=>'Login successfully',
+            'user'=> new UserResource($user),
+            'profile' => new ProfileResource($user->profile),
          'token'=>   $token];
 
 }

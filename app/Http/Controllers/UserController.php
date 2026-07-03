@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\UserResource;
 use App\Models\Otp;
 use App\Models\Product;
 use App\Models\User;
@@ -45,7 +46,10 @@ class UserController extends Controller
         }
         return response()->json([
             'message' => 'Login successfully',
-            'token' => $data['token']
+            'token' => $data['token'],
+            'user' => $data['user'],
+             'profile' => $data['profile'],
+
         ], 200);
     }
 
@@ -65,17 +69,17 @@ class UserController extends Controller
         return response()->json([
             'message' => $data['message']
         ], $status);
-    }    
+    }
 
 
-// test 
+// test
     public function sendNotification(Request $request){
-        
+
       $user = FacadesAuth::user();
         $request->validate([
             'title'=>'required|string',
             'body'=>'required|string',
-        
+
         ]);
 
        $this->firebase->sendToUser($user->id, $request->title, $request->body);
