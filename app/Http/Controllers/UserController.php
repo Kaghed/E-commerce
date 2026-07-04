@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\ProfileResource;
 use App\Http\Resources\UserResource;
 use App\Models\Otp;
 use App\Models\Product;
@@ -82,6 +83,8 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Account created',
+            new UserResource($user),
+            new ProfileResource($profile),
             'token' => $token
         ]);
     }
