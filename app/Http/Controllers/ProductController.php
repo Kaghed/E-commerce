@@ -11,7 +11,7 @@ class ProductController extends Controller
 
     public function  showAllProducts()
     {
-        $products = Product::all()->paginate(10);
+        $products = Product::query()->paginate(10);
        
         return response()->json([
             'message' => 'Products retrieved successfully',
