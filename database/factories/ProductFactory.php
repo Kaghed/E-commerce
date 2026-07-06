@@ -20,7 +20,7 @@ class ProductFactory extends Factory
     {
         return [
              
-            'seller_id' => 2,
+            'seller_id' => 3,
             'category_id' => $this->faker->numberBetween(1, 10),
             'title' => $this->faker->words(3, true),
             'description' => $this->faker->paragraph(),

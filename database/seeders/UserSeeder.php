@@ -69,10 +69,10 @@ class UserSeeder extends Seeder
             'wallet_pin' => Hash::make(1234)
         ]);
 
-        DeviceToken::Create([
-            'user_id' => $user->id,
-            'token' => 'f4lH24G78vO6keX8Ksxt6e:APA91bEhhLEff2jxjQ3dVC0sEDQsqUUgHh6q1KLKLG1RsQ5_aeoREu6qwBG-DZj6QjhtNyFCpF0VXPuf7ib-uuro6_EIdI9tR5vR4hKfiWFJRAUv5E0vVFo'
-        ]);
+        // DeviceToken::Create([
+        //     'user_id' => $user->id,
+        //     'token' => 'f4lH24G78vO6keX8Ksxt6e:APA91bEhhLEff2jxjQ3dVC0sEDQsqUUgHh6q1KLKLG1RsQ5_aeoREu6qwBG-DZj6QjhtNyFCpF0VXPuf7ib-uuro6_EIdI9tR5vR4hKfiWFJRAUv5E0vVFo'
+        // ]);
         $token11 = $user->createToken('authToken')->plainTextToken;
 
 
@@ -100,6 +100,10 @@ class UserSeeder extends Seeder
             'wallet_pin'=>Hash::make(1234)
         ]);
 
+        DeviceToken::Create([
+            'user_id' => $user->id,
+            'token' => 'f4lH24G78vO6keX8Ksxt6e:APA91bEhhLEff2jxjQ3dVC0sEDQsqUUgHh6q1KLKLG1RsQ5_aeoREu6qwBG-DZj6QjhtNyFCpF0VXPuf7ib-uuro6_EIdI9tR5vR4hKfiWFJRAUv5E0vVFo'
+        ]);
         $token2 = $user->createToken('authToken')->plainTextToken;
 
         //** customer */
@@ -120,7 +124,7 @@ class UserSeeder extends Seeder
 
         Wallet::create([
             'user_id'=>$user->id,
-            'balance' => 120.0,
+            'balance' => 12000.0,
             'wallet_pin' => Hash::make(1234)
         ]);
 

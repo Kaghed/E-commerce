@@ -10,9 +10,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OrderController;
 use App\Http\Middleware\SellerMiddleware;
 use App\Http\Controllers\SellerController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\RatingController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SupportRequestController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\WalletController;
@@ -38,7 +41,7 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::post('/forgotPassword', [UserController::class, 'forgotPassword']);
     Route::post('/changePassword', [ProfileController::class, 'changePassword']);
     //
-    Route::post('updateProfile', [ProfileController::class, 'update']);
+    Route::post('/updateProfile', [ProfileController::class, 'update']);
 
     //* Admin
     Route::middleware("role:admin")->group(function () {
@@ -64,6 +67,16 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post('/getQuestionsByStatus', [AdminController::class, 'getQuestionsByStatus']);
         Route::post('/handleQuestion/{id}', [AdminController::class, 'handleQuestion']);
 
+        //route for reports
+        Route::get('/product-reports', [ReportController::class, 'productReports']);
+        Route::post('/product-reports/{reportId}/dismiss', [ReportController::class, 'dismissProductReport']);
+        Route::post('/product-reports/{reportId}/delete-product', [ReportController::class, 'deleteReportedProduct']);
+
+        
+        Route::get('/order-reports', [ReportController::class, 'OrderReports']);
+        Route::post('/order-reports/{reportId}/accept', [ReportController::class, 'accept']);
+        Route::post('/order-reports/{reportId}/reject', [ReportController::class, 'reject']);
+
     });
 
 
@@ -81,6 +94,14 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get('/getMyActiveProducts', [SellerController::class, 'getMyActiveProducts']);
         Route::get('/countMyActiveProducts', [SellerController::class, 'countMyActiveProducts']);
         Route::get('/countMyInactiveProducts', [SellerController::class, 'countMyInactiveProducts']);
+
+
+        
+        Route::get('/ShowOrderBySeller', [OrderController::class, 'ShowOrderBySeller']);
+        Route::post('/orders/{orderId}/ship', [OrderController::class, 'ship']);
+        Route::delete('/orders/{orderId}/reject', [OrderController::class, 'reject']);
+        Route::get('/orders/completed-count', [OrderController::class, 'completedCount']);
+
     });
 
     //* Customer
@@ -98,7 +119,13 @@ Route::middleware("auth:sanctum")->group(function () {
             Route::put('/items/{cartItemId}', [CartController::class, 'updateItem']);
             Route::delete('/items/{cartItemId}', [CartController::class, 'removeItem']);
         });
+        
+        Route::get('/ShowOrderByCustomer', [OrderController::class, 'ShowOrderByCustomer']);
+        Route::post('/storeorders', [OrderController::class, 'store']);
+        Route::post('/order/{orderId}/confirm', [OrderController::class, 'confirm']);
+        Route::post('/order/{orderId}/report', [ReportController::class, 'reportOrder']);
 
+        Route::post('/rate-seller', [RatingController::class, 'store']);
     });
 
 
@@ -117,6 +144,11 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::get('/products/{category_id}/categories', [ProductController::class, 'getProductByCategory']);
         Route::get('/products/searchByProductUrl', [ProductController::class, 'searchProductsByProductUrl']);
         Route::get('/products/filter', [ProductController::class, 'filterProducts']);
+        
+        Route::post('/products/{productId}/report', [ReportController::class, 'reportProduct']);
+        Route::get('/sellers/{sellerId}/rating', [RatingController::class, 'sellerAverage']);
+
+
 
         Route::post('/withdraw', [TransactionController::class, 'withdraw']);
     });

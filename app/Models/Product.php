@@ -37,4 +37,10 @@ class Product extends Model
     {
         return $this->belongsToMany(User::class,'favorites','product_id','user_id')->withTimestamps();
     }
+     
+    public function reports()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
+
 }
