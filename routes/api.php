@@ -29,16 +29,17 @@ Route::post('/otp/send', [OtpController::class, 'send']);
 Route::post('/otp/verify', [OtpController::class, 'verify']);
 
 Route::post('/register', [UserController::class, 'register']);
+Route::post('/verifyRegister', [UserController::class, 'verifyRegister']);
 
 Route::post('/login', [UserController::class, 'login']);
 //
 Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
 
+Route::post('/forgotPassword', [UserController::class, 'forgotPassword']);
+
 Route::middleware("auth:sanctum")->group(function () {
 
-    Route::post('changePassword', [ProfileController::class, 'changePassword']);
 
-    Route::post('/forgotPassword', [UserController::class, 'forgotPassword']);
     Route::post('/changePassword', [ProfileController::class, 'changePassword']);
     //
     Route::post('/updateProfile', [ProfileController::class, 'update']);
@@ -133,6 +134,7 @@ Route::middleware("auth:sanctum")->group(function () {
     Route::middleware('role:customer,seller')->group(function () {
 
         Route::post('/changePin', [WalletController::class, 'changePin']);
+        Route::post('/checkPin', [WalletController::class, 'checkPin']);
         Route::post('/createAd', [AdvertismentController::class, 'createAd']);
         Route::post('/deleteAd/{id}', [AdvertismentController::class, 'deleteAd']);
         Route::post('/getMyAdsByStatus', [AdvertismentController::class, 'getMyAdsByStatus']);
