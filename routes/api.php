@@ -136,8 +136,8 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post('/changePin', [WalletController::class, 'changePin']);
         Route::post('/checkPin', [WalletController::class, 'checkPin']);
         Route::post('/createAd', [AdvertismentController::class, 'createAd']);
-        Route::post('/deleteAd/{id}', [AdvertismentController::class, 'deleteAd']);
-        Route::post('/getMyAdsByStatus', [AdvertismentController::class, 'getMyAdsByStatus']);
+        Route::delete('/deleteAd/{id}', [AdvertismentController::class, 'deleteAd']);
+        Route::get('/getMyAdsByStatus', [AdvertismentController::class, 'getMyAdsByStatus']);
 
         Route::post('/askQuestion', [SupportRequestController::class, 'askQuestion']);
         Route::post('/getMyQuestionsByStatus', [SupportRequestController::class, 'getMyQuestionsByStatus']);
