@@ -1,12 +1,13 @@
 <?php
+
 namespace App\Services;
-use Kreait\Firebase\Factory;
-use Kreait\Firebase\Messaging\CloudMessage; 
-use Kreait\Firebase\Messaging\Notification;
+
 use App\Models\DeviceToken;
-use App\Models\User;
 use App\Models\Notification as NotificationModel;
 use Illuminate\Support\Facades\Log;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification;
 
 class FirebaseNotificationService
 {
@@ -14,63 +15,124 @@ class FirebaseNotificationService
 
     public function __construct()
     {
-        $factory = (new Factory)->withServiceAccount(base_path(config('services.firebase.credentials')));
+        $factory = (new Factory())
+            ->withServiceAccount(
+                base_path(config('services.firebase.credentials'))
+            );
+
         $this->messaging = $factory->createMessaging();
     }
 
-    public function sendToUser(int $userId, string $title , string $body)
-    { 
-     
-       try {
-
-         $tokens = DeviceToken::where('user_id', '=', $userId , 'and')->pluck('token')->toArray();
-          if (empty($tokens)) {
-            Log::warning("No device tokens found for user ID: {$userId}");
-            return [
-                'success' => false,
-                'message' => 'No device tokens found for the user.'
-            ];
-        }
+    public function sendToUser(
+        int $userId,
+        string $title,
+        string $body
+    ): array {
+        try {
+            /*
+             * نحفظ الإشعار في قاعدة البيانات أولاً دائماً.
+             *
+             * إشعار داخل التطبيق يجب ألا يعتمد على وجود FCM token؛
+             * لأن المستخدم قد يكون مسجلاً من جهاز بلا توكن صالح،
+             * ومع ذلك يجب أن يرى الإشعار لاحقاً داخل صفحة الإشعارات.
+             */
             $notification = NotificationModel::create([
                 'user_id' => $userId,
                 'title' => $title,
                 'body' => $body,
                 'is_read' => false,
             ]);
-            log::info("Notification created in database for user ID: {$userId} with title: {$title}");
-                    
-            $firebasenotification = Notification::create($title, $body);
-            $message = CloudMessage::new()->withNotification($firebasenotification)->withData([
-                'notification_id' => (string) $notification->id,
-                'user_id' => (string) $userId,
-            ]);
+
+            Log::info(
+                "Notification created in database for user ID: {$userId} "
+                . "with title: {$title}"
+            );
+
+            $tokens = DeviceToken::query()
+                ->where('user_id', $userId)
+                ->pluck('token')
+                ->filter(
+                    static fn ($token) =>
+                        is_string($token) && trim($token) !== ''
+                )
+                ->unique()
+                ->values()
+                ->all();
+
+            /*
+             * عدم وجود توكن يمنع Push Notification فقط،
+             * لكنه لا يعتبر فشلاً في الإشعار الداخلي بعد حفظه في DB.
+             */
+            if (empty($tokens)) {
+                Log::warning(
+                    "No device tokens found for user ID: {$userId}. "
+                    . "The notification remains available inside the app."
+                );
+
+                return [
+                    'success' => true,
+                    'push_sent' => false,
+                    'sent_count' => 0,
+                    'failed_count' => 0,
+                    'data' => $notification,
+                    'message' =>
+                        'Notification saved successfully, but no device token was found.',
+                ];
+            }
+
+            $firebaseNotification = Notification::create($title, $body);
+
+            $message = CloudMessage::new()
+                ->withNotification($firebaseNotification)
+                ->withData([
+                    'notification_id' => (string) $notification->id,
+                    'user_id' => (string) $userId,
+                    'type' => 'database_notification',
+                ]);
+
+            $sentCount = 0;
+            $failedCount = 0;
 
             foreach ($tokens as $token) {
                 try {
-                  
-                      $this->messaging->send($message->toToken($token));  
-                  
-        
-                    log::info("Notification sent to token: {$token} for user ID: {$userId}");
-                } 
-                catch (\Exception $e) 
-                {
-                    Log::error("Failed to send notification to token: {$token} for user ID: {$userId}. Error: " . $e->getMessage());
+                    $this->messaging->send($message->toToken($token));
+                    $sentCount++;
+
+                    Log::info(
+                        "Notification sent to token for user ID: {$userId}"
+                    );
+                } catch (\Throwable $exception) {
+                    $failedCount++;
+
+                    Log::error(
+                        "Failed to send notification to a token for user ID: "
+                        . "{$userId}. Error: {$exception->getMessage()}"
+                    );
                 }
             }
-    
+
             return [
                 'success' => true,
+                'push_sent' => $sentCount > 0,
+                'sent_count' => $sentCount,
+                'failed_count' => $failedCount,
                 'data' => $notification,
-                'message' => 'Notification sent successfully.'
-
+                'message' => $sentCount > 0
+                    ? 'Notification saved and sent successfully.'
+                    : 'Notification saved, but push delivery failed.',
             ];
-    }catch (\Exception $e) {
-        log::error("Failed to send notification to user ID: {$userId}. Error: " . $e->getMessage());
-        return [
-            'success' => false,
-            'message' => 'Failed to send notification. Please try again later.'
-        ];
-    }
+        } catch (\Throwable $exception) {
+            Log::error(
+                "Failed to create or send notification for user ID: {$userId}. "
+                . "Error: {$exception->getMessage()}"
+            );
+
+            return [
+                'success' => false,
+                'push_sent' => false,
+                'message' =>
+                    'Failed to create the notification. Please try again later.',
+            ];
+        }
     }
 }
