@@ -120,7 +120,7 @@ class SellerOrderService
         $seller = Auth::user();
 
         $query = Order::whereHas('product', fn($q) => $q->where('seller_id', $seller->id))
-            ->with('product', 'shipping', 'customer')
+            ->with('product', 'shipping', 'customer.profile')
             ->latest();
 
         if ($request->has('status')) {
