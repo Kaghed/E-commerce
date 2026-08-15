@@ -7,9 +7,15 @@ use App\Models\SupportRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\FirebaseNotificationService;
+
 
 class SupportRequestController extends Controller
 {
+    public function __construct(
+        private FirebaseNotificationService $notificationService,
+
+    ) {}
 
     public function askQuestion(Request $request)
     {
@@ -27,6 +33,12 @@ class SupportRequestController extends Controller
             'answer' => null,
             'status' => 'pending'
         ]);
+     
+        $this->notificationService->sendToUser(
+                userId: 1,
+                title: 'NewQuestion',
+                body: "there is a new question request for you ",
+            );  
 
         return response()->json('Question sent to the support', 200);
     }

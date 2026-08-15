@@ -12,6 +12,7 @@ use App\Models\SupportRequest;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\AdminService;
+use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
@@ -25,7 +26,9 @@ class AdminController extends Controller
 {
 
     public function __construct(
-        protected AdminService $adminService
+        protected AdminService $adminService ,
+        private FirebaseNotificationService $notificationService,
+
     ) {
     }
     public function showUsers()
@@ -189,7 +192,10 @@ class AdminController extends Controller
         ]);
 
         $transaction = Transaction::findOrFail($transaction_id);
-
+            
+          $wallet = $transaction->wallet;
+          $user_id = $wallet->user_id;
+          
         if ($transaction->type !== 'deposit') {
             return response()->json([
                 'message' => 'This is not a deposit transaction'
@@ -204,8 +210,6 @@ class AdminController extends Controller
 
         if ($request->status === 'approved') {
 
-            $wallet = $transaction->wallet;
-
             $wallet->increment('balance', $request->amount);
 
             $transaction->update([
@@ -213,16 +217,32 @@ class AdminController extends Controller
                 'amount' => $request->amount
             ]);
 
+
+             $this->notificationService->sendToUser(
+                userId:  $user_id,
+                title: 'DepositTransaction',
+                body: "the desposit transaction ID : {$transaction->id} was accepted by the admin  ",
+            );
+
+
             return response()->json([
                 'message' => 'Deposit approved successfully'
             ]);
         }
 
-        $transaction->delete();
+     if ($request->status === 'cancelled') {
+    
+         $transaction->delete();
+         $this->notificationService->sendToUser(
+                userId:  $user_id,
+                title: 'DepositTransaction',
+                body: "the desposit transaction ID : {$transaction->id} was unaccepted by the admin  ",
+            );
 
         return response()->json([
             'message' => 'Deposit cancelled '
         ]);
+ }       
     }
 
     public function handleWithdrawTransaction(Request $request, int $transaction_id)
@@ -245,31 +265,50 @@ class AdminController extends Controller
             ], 400);
         }
 
-        $wallet = $transaction->wallet;
+         $wallet = $transaction->wallet;
+         $user_id = $wallet->user_id;
 
         if ($request->status === 'approved') {
 
             $user = Auth::user();
-            $user->wallet->balance += $transaction->amount * 0.01;
+
+            $tax =$transaction->amount * 0.01;
+            $user->wallet->balance += $tax ;
+
             $user->wallet->save();
 
             $transaction->update([
                 'status' => 'completed'
             ]);
 
+             $this->notificationService->sendToUser(
+                userId: $user_id,
+                title: 'WithdrawTransaction',
+                body: "the withdraw transaction ID : {$transaction->id} was accepted by the admin",
+            );
+
             return response()->json([
                 'message' => 'Withdraw approved successfully'
             ]);
+
         }
 
-            $wallet->increment('balance', $transaction->amount);
-        $wallet->save();
-
+        // $wallet->increment('balance', $transaction->amount);
+        // $wallet->save();
+ 
+    if ($request->status === 'cancelled') {
         $transaction->delete();
-
+      
+         $this->notificationService->sendToUser(
+                userId: $user_id,
+                title: 'WithdrawTransaction',
+                body: "the withdraw transaction ID : {$transaction->id} was unaccepted by the admin",
+            );
         return response()->json([
             'message' => 'Deposit cancelled '
         ]);
+ }
+
     }
 
 
@@ -295,6 +334,7 @@ class AdminController extends Controller
             }
 
             $amount = $ad->transaction->amount;
+            $user_id =$ad->transaction->user_id;
 
             if ($request->status == 'approved') {
 
@@ -304,6 +344,12 @@ class AdminController extends Controller
 
                 $admin = Auth::user();
                 $admin->wallet->increment('balance', $amount);
+        
+            $this->notificationService->sendToUser(
+                userId: $user_id,
+                title: 'AcceptedAdvertisment',
+                body: "the Advertisment ID : {$ad->id} was accepted by the admin",
+            );
 
                 return response()->json('Ad now is approved', 200);
             }
@@ -324,6 +370,12 @@ class AdminController extends Controller
                 'status' => 'completed',
                 'description' => $request->reason,
             ]);
+
+            $this->notificationService->sendToUser(
+                userId: $user_id,
+                title: 'UnacceptedAdvertisment',
+                body: "the Advertisment ID : {$ad->id} was accepted by the admin",
+            );
 
             return response()->json('Add declined', 201);
         });
@@ -382,7 +434,7 @@ class AdminController extends Controller
         ]);
 
         $question = SupportRequest::findOrFail($question_id);
-
+        $user_id = $question->user_id;
         if($question->status !='pending'){
             return response()->json('question already answered', 401);
         }
@@ -390,6 +442,12 @@ class AdminController extends Controller
         $question->status = 'answered';
         $question->answer = $request->answer;
         $question->save();
+        
+        $this->notificationService->sendToUser(
+                userId: $user_id,
+                title: 'AnswerToQuestion',
+                body: "you have been answered by your question ID : {$question->id}  by the admin",
+            );
 
         return response()->json('question answered successfully', 200);
     }

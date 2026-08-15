@@ -8,10 +8,16 @@ use App\Models\Advertisment;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\FirebaseNotificationService;
+
 use Illuminate\Support\Facades\DB;
 
 class AdvertismentController extends Controller
 {
+
+public function __construct(
+        private FirebaseNotificationService $notificationService ) {}
+
     public function createAd(CreateAdRequest $request ){
 
         return DB::transaction(function () use ($request) {
@@ -44,6 +50,12 @@ class AdvertismentController extends Controller
                 'status' => 'pending',
                 'transaction_id' => $transaction->id
             ]);
+
+            $this->notificationService->sendToUser(
+                userId: 1,
+                title: 'NewAdvertisment',
+                body: "there is a request added new advertisment",
+            );  
 
             return response()->json('Ad created and now it\'s pending', 201);
         });

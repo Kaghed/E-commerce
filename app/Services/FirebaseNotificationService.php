@@ -15,10 +15,7 @@ class FirebaseNotificationService
 
     public function __construct()
     {
-        $factory = (new Factory())
-            ->withServiceAccount(
-                base_path(config('services.firebase.credentials'))
-            );
+        $factory = (new Factory())->withServiceAccount(base_path(config('services.firebase.credentials')));
 
         $this->messaging = $factory->createMessaging();
     }
@@ -29,13 +26,7 @@ class FirebaseNotificationService
         string $body
     ): array {
         try {
-            /*
-             * نحفظ الإشعار في قاعدة البيانات أولاً دائماً.
-             *
-             * إشعار داخل التطبيق يجب ألا يعتمد على وجود FCM token؛
-             * لأن المستخدم قد يكون مسجلاً من جهاز بلا توكن صالح،
-             * ومع ذلك يجب أن يرى الإشعار لاحقاً داخل صفحة الإشعارات.
-             */
+           
             $notification = NotificationModel::create([
                 'user_id' => $userId,
                 'title' => $title,
@@ -59,10 +50,8 @@ class FirebaseNotificationService
                 ->values()
                 ->all();
 
-            /*
-             * عدم وجود توكن يمنع Push Notification فقط،
-             * لكنه لا يعتبر فشلاً في الإشعار الداخلي بعد حفظه في DB.
-             */
+            
+                
             if (empty($tokens)) {
                 Log::warning(
                     "No device tokens found for user ID: {$userId}. "

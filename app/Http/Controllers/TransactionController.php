@@ -5,9 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\FirebaseNotificationService;
+
 
 class TransactionController extends Controller
 {
+    public function __construct(
+        private FirebaseNotificationService $notificationService,
+
+    ) {}
+
     public function deposit(Request $request){
 
         $request->validate([
@@ -23,6 +30,12 @@ class TransactionController extends Controller
             'description'=>'transfer number = ' . $request->transfer_number,
         ]);
 
+      $this->notificationService->sendToUser(
+                userId: 1,
+                title: 'NewDepositTransaction',
+                body: "there is a new deposit request for you ",
+            );
+
         return response()->json('Transaction created, and now it is pending', 200);
     }
 
@@ -36,8 +49,9 @@ class TransactionController extends Controller
         ]);
 
         $user = Auth::user();
+        $tax = $request->amount * 0.01;
 
-        if($request->amount > $user->wallet->balance){
+        if($request->amount + $tax > $user->wallet->balance){
             return response()->json('You don\'t have enough money', 403);
         }
 
@@ -52,6 +66,12 @@ class TransactionController extends Controller
             'description' => 'with draw my money',
             'amount' => $request->amount
         ]);
+
+        $this->notificationService->sendToUser(
+                userId: 1,
+                title: 'NewWithdrawTransaction',
+                body: "there is a new withdraw request for you ",
+            );
 
         return response()->json('Your transaction created and now it is pending', 200);
 
