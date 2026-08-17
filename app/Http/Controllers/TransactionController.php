@@ -49,14 +49,16 @@ class TransactionController extends Controller
         ]);
 
         $user = Auth::user();
+        
         $tax = $request->amount * 0.01;
+        $tot=$tax + $request->amount;
 
         if($request->amount + $tax > $user->wallet->balance){
             return response()->json('You don\'t have enough money', 403);
         }
 
         $wallet = $user->wallet;
-        $wallet->balance -= $request->amount;
+        $wallet->balance -= $tot;
         $wallet->save();
 
         Transaction::create([

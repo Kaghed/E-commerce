@@ -267,14 +267,13 @@ class AdminController extends Controller
 
          $wallet = $transaction->wallet;
          $user_id = $wallet->user_id;
+         $tax =$transaction->amount * 0.01;
+         $tot = $tax + $request->amount ;
 
         if ($request->status === 'approved') {
 
             $user = Auth::user();
-
-            $tax =$transaction->amount * 0.01;
             $user->wallet->balance += $tax ;
-
             $user->wallet->save();
 
             $transaction->update([
@@ -296,8 +295,12 @@ class AdminController extends Controller
         // $wallet->increment('balance', $transaction->amount);
         // $wallet->save();
  
+        
     if ($request->status === 'cancelled') {
-        $transaction->delete();
+         
+
+          $wallet->increment('balance', $tot );
+          $transaction->delete();
       
          $this->notificationService->sendToUser(
                 userId: $user_id,
@@ -334,7 +337,7 @@ class AdminController extends Controller
             }
 
             $amount = $ad->transaction->amount;
-            $user_id =$ad->transaction->user_id;
+            $user_id =$ad->transaction->wallet->user_id;
 
             if ($request->status == 'approved') {
 
@@ -374,7 +377,7 @@ class AdminController extends Controller
             $this->notificationService->sendToUser(
                 userId: $user_id,
                 title: 'UnacceptedAdvertisment',
-                body: "the Advertisment ID : {$ad->id} was accepted by the admin",
+                body: "the Advertisment ID : {$ad->id} was unaccepted by the admin",
             );
 
             return response()->json('Add declined', 201);
