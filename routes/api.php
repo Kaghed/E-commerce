@@ -138,6 +138,7 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post('/createAd', [AdvertismentController::class, 'createAd']);
         Route::delete('/deleteAd/{id}', [AdvertismentController::class, 'deleteAd']);
         Route::get('/getMyAdsByStatus', [AdvertismentController::class, 'getMyAdsByStatus']);
+        Route::get('/getMyTransactionByStatus', [TransactionController::class, 'getMyTransactionByStatus']);
 
         Route::post('/askQuestion', [SupportRequestController::class, 'askQuestion']);
         Route::post('/getMyQuestionsByStatus', [SupportRequestController::class, 'getMyQuestionsByStatus']);

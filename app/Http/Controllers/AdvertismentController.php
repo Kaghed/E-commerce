@@ -28,18 +28,18 @@ public function __construct(
 
             $wallet = $user->wallet;
 
-            if ($wallet->balance < $data['amount']) {
+            if ($wallet->balance < 100) {
                 return response()->json('You don\'t have enough money', 403);
             }
 
-            $wallet->decrement('balance', $data['amount']);
+            $wallet->decrement('balance', 100);
 
             $transaction = Transaction::create([
                 'wallet_id' => $wallet->id,
                 'type' => 'payment',
                 'status' => 'completed',
                 'description' => 'payment for an ad',
-                'amount' => $data['amount']
+                'amount' => 100
             ]);
             Advertisment::create([
                 'user_id' => $user->id,

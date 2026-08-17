@@ -31,7 +31,6 @@ class CreateAdRequest extends FormRequest
             'governorate'=>['required',
                 new Enum(Governorate::class)
         ],
-            'amount'=>'required|numeric'
         ];
     }
 }

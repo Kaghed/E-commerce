@@ -18,7 +18,8 @@ class TransactionController extends Controller
     public function deposit(Request $request){
 
         $request->validate([
-            'transfer_number'=>'required|string'
+            'transfer_number'=>'required|string',
+            'amount' => 'required|string'
         ]);
 
         $user = Auth::user();
@@ -27,6 +28,7 @@ class TransactionController extends Controller
             'wallet_id' => $user->wallet->id,
             'type' => 'deposit',
             'status' => 'pending',
+            'amount' => $request->amount,
             'description'=>'transfer number = ' . $request->transfer_number,
         ]);
 
@@ -76,6 +78,33 @@ class TransactionController extends Controller
             );
 
         return response()->json('Your transaction created and now it is pending', 200);
+
+    }
+
+
+    public function getMyTransactionByStatus(Request $request){
+
+        $request->validate([
+            'status' => 'required|string|in:pending, completed'
+        ]);
+
+        $user = Auth::user();
+
+        $transactions = Transaction::where('status', $request->status)
+            ->where('wallet_id', $user->wallet->id)
+            ->paginate(10);
+
+
+        return response()->json([
+
+            'pagination' => [
+                'current_page' => $transactions->currentPage(),
+                'last_page' => $transactions->lastPage(),
+                'per_page' => $transactions->perPage(),
+                'total' => $transactions->total(),
+            ],
+            'transactions' => $transactions
+        ]);
 
     }
 }
