@@ -67,7 +67,7 @@ class TransactionController extends Controller
             'wallet_id' => $wallet->id,
             'type' => 'withdraw',
             'status' => 'pending',
-            'description' => 'with draw my money',
+            'description' => 'with draw my money , the shamcash_number : ' . $request->shamcash_number,
             'amount' => $request->amount
         ]);
 
