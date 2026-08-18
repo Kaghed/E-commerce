@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -41,6 +42,21 @@ class WalletController extends Controller
         }
 
         return response()->json('Your pin is correct' , 200);
+
+    }
+
+
+
+    public function getMyBalance(){
+
+        
+        $user = Auth::user();
+        $Wallet = Wallet::where('user_id',$user->id)->first();
+
+        return response()->json([
+
+            'WalletBalance' => $Wallet->balance
+        ]);
 
     }
 }

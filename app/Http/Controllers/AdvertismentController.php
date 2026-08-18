@@ -100,4 +100,21 @@ public function __construct(
         ]);
 
     }
+
+      public function  showAllAdvertisment()
+    {
+        $Advertisment = Advertisment::where('status','approved')->paginate(10);
+
+        return response()->json([
+            'message' => 'show all advertisment successfully',
+            'pagination' => [
+                'current_page' => $Advertisment->currentPage(),
+                'last_page' => $Advertisment->lastPage(),
+                'per_page' => $Advertisment->perPage(),
+                'total' => $Advertisment->total(),
+            ],
+            'Advertisment' => $Advertisment
+        ], 200);
+    }
+
 }
