@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\SupportRequest;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Models\Wallet;
 use App\Services\AdminService;
 use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
@@ -247,70 +248,85 @@ class AdminController extends Controller
 
     public function handleWithdrawTransaction(Request $request, int $transaction_id)
     {
-        $request->validate([
+        $validated = $request->validate([
             'status' => 'required|in:approved,cancelled'
         ]);
 
-        $transaction = Transaction::findOrFail($transaction_id);
+        $result = DB::transaction(function () use ($validated, $transaction_id) {
+            $transaction = Transaction::whereKey($transaction_id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if ($transaction->type !== 'withdraw') {
+            if ($transaction->type !== 'withdraw') {
+                return [
+                    'error' => 'This is not a withdraw transaction',
+                    'status' => 400,
+                ];
+            }
+
+            if ($transaction->status !== 'pending') {
+                return [
+                    'error' => 'Transaction already processed',
+                    'status' => 400,
+                ];
+            }
+
+            $wallet = Wallet::whereKey($transaction->wallet_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $userId = $wallet->user_id;
+            $transactionId = $transaction->id;
+            $amount = round((float) $transaction->amount, 2);
+            $tax = round($amount * 0.01, 2);
+            $total = round($amount + $tax, 2);
+
+            if ($validated['status'] === 'approved') {
+                $adminWallet = Wallet::where('user_id', Auth::id())
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                $adminWallet->balance = round(
+                    (float) $adminWallet->balance + $tax,
+                    2
+                );
+                $adminWallet->save();
+
+                $transaction->update(['status' => 'completed']);
+
+                return [
+                    'user_id' => $userId,
+                    'transaction_id' => $transactionId,
+                    'message' => 'Withdraw approved successfully',
+                    'notification_body' => "the withdraw transaction ID : {$transactionId} was accepted by the admin",
+                ];
+            }
+
+            $wallet->balance = round((float) $wallet->balance + $total, 2);
+            $wallet->save();
+            $transaction->delete();
+
+            return [
+                'user_id' => $userId,
+                'transaction_id' => $transactionId,
+                'message' => 'Withdraw cancelled successfully',
+                'notification_body' => "the withdraw transaction ID : {$transactionId} was unaccepted by the admin",
+            ];
+        });
+
+        if (isset($result['error'])) {
             return response()->json([
-                'message' => 'This is not a deposit transaction'
-            ], 400);
+                'message' => $result['error']
+            ], $result['status']);
         }
 
-        if ($transaction->status !== 'pending') {
-            return response()->json([
-                'message' => 'Transaction already processed'
-            ], 400);
-        }
+        $this->notificationService->sendToUser(
+            userId: $result['user_id'],
+            title: 'WithdrawTransaction',
+            body: $result['notification_body'],
+        );
 
-         $wallet = $transaction->wallet;
-         $user_id = $wallet->user_id;
-         $tax =$transaction->amount * 0.01;
-         $tot = $tax + $request->amount ;
-
-        if ($request->status === 'approved') {
-
-            $user = Auth::user();
-            $user->wallet->balance += $tax ;
-            $user->wallet->save();
-
-            $transaction->update([
-                'status' => 'completed'
-            ]);
-
-             $this->notificationService->sendToUser(
-                userId: $user_id,
-                title: 'WithdrawTransaction',
-                body: "the withdraw transaction ID : {$transaction->id} was accepted by the admin",
-            );
-
-            return response()->json([
-                'message' => 'Withdraw approved successfully'
-            ]);
-
-        }
-
-        // $wallet->increment('balance', $transaction->amount);
-        // $wallet->save();
- 
-        
-    if ($request->status === 'cancelled') {
-         
-
-          $wallet->increment('balance', $tot );
-          $transaction->delete();
-      
-         $this->notificationService->sendToUser(
-                userId: $user_id,
-                title: 'WithdrawTransaction',
-                body: "the withdraw transaction ID : {$transaction->id} was unaccepted by the admin",
-            );
         return response()->json([
-            'message' => 'Deposit cancelled '
+            'message' => $result['message']
         ]);
- }
 
     }
 

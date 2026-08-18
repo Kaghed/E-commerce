@@ -6,6 +6,7 @@ use App\Http\Requests\CreateOrderRequest;
 use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Rating;
 use App\Models\Shipping;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
@@ -104,52 +105,65 @@ class OrderService
     {
         $customer = Auth::user();
 
-        $order = Order::where('id', $orderId)
-            ->where('customer_id', $customer->id)
-            ->with('product')
-            ->first();
+        return DB::transaction(function () use ($orderId, $customer) {
+            $order = Order::where('id', $orderId)
+                ->where('customer_id', $customer->id)
+                ->with('product')
+                ->lockForUpdate()
+                ->first();
 
-        if (!$order) {
-            return response()->json(['message' => 'Order not found.'], 404);
-        }
+            if (!$order) {
+                return response()->json(['message' => 'Order not found.'], 404);
+            }
 
-        if ($order->status == 'complete') {
-            return response()->json(['message' => 'Order is already completed.'], 422);
-        }
+            if ($order->status == 'complete') {
+                return response()->json(['message' => 'Order is already completed.'], 422);
+            }
 
-        return DB::transaction(fn() => $this->completeOrder($order));
+            return $this->completeOrder($order);
+        });
     }
 
   
 
     public function completeOrder(Order $order){
 
-        $order->loadMissing('product');
-        $product = $order->product;
+        return DB::transaction(function () use ($order) {
+            $order = Order::whereKey($order->id)
+                ->with('product')
+                ->lockForUpdate()
+                ->firstOrFail();
 
-     
-        $sellerWallet = Wallet::firstOrCreate(
-            ['user_id' => $product->seller_id],
-            ['balance' => 0]
-        );
+            if ($order->status === 'complete') {
+                return $order;
+            }
 
-        $this->walletService->credit(
-            wallet: $sellerWallet,
-            amount: $order->total_price,
-            type: 'deposit',
-            description: "Payment received for selling: {$product->title}",
-        );
+            $product = $order->product;
 
-        $order->update(['status' => 'complete']);
+            $this->walletService->completePendingPayment($order->transaction_id);
 
-        
-        $this->notificationService->sendToUser(
-            userId: $product->seller_id,
-            title: 'Payment Received',
-            body: "An amount has been deposited into your wallet for selling: {$product->title}.",
-        );
+            $sellerWallet = Wallet::firstOrCreate(
+                ['user_id' => $product->seller_id],
+                ['balance' => 0]
+            );
 
-        return $order->fresh();
+            $this->walletService->credit(
+                wallet: $sellerWallet,
+                amount: $order->total_price,
+                type: 'deposit',
+                description: "Payment received for selling: {$product->title}",
+            );
+
+            $order->update(['status' => 'complete']);
+
+            $this->notificationService->sendToUser(
+                userId: $product->seller_id,
+                title: 'Payment Received',
+                body: "An amount has been deposited into your wallet for selling: {$product->title}.",
+            );
+
+            return $order->fresh();
+        });
     }
 
 
@@ -159,10 +173,22 @@ class OrderService
     {
         $customer = Auth::user();
 
+        $ratedProductIds = Rating::query()
+            ->where('customer_id', $customer->id)
+            ->whereNotNull('product_id')
+            ->pluck('product_id')
+            ->mapWithKeys(fn ($productId) => [(int) $productId => true]);
+
         return Order::where('customer_id', $customer->id)
             ->where('status', $request->status)
             ->with('product', 'shipping')
             ->latest()
-            ->get();
+            ->get()
+            ->each(function (Order $order) use ($ratedProductIds) {
+                $order->setAttribute(
+                    'has_rating',
+                    $ratedProductIds->has((int) $order->product_id)
+                );
+            });
     }
 }

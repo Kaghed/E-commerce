@@ -23,7 +23,7 @@ class RateSellerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'seller_id' => 'required|exists:users,id',
+            'order_id' => 'bail|required|integer|exists:orders,id',
             'value' => 'required|integer|between:1,5',
         ];
     }

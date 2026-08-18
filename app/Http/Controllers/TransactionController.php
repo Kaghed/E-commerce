@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaction;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\FirebaseNotificationService;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\DB;
 
 
 class TransactionController extends Controller
@@ -45,31 +48,39 @@ class TransactionController extends Controller
     public function withdraw(Request $request){
 
 
-        $request->validate([
+        $validated = $request->validate([
             'amount' => 'required|numeric|min:1',
-            'shamcash_number'=>'required|numeric'
+            'shamcash_number' => ['required', 'string', 'regex:/^\d+$/', 'max:50']
         ]);
 
         $user = Auth::user();
-        
-        $tax = $request->amount * 0.01;
-        $tot=$tax + $request->amount;
+        $amount = round((float) $validated['amount'], 2);
+        $tax = round($amount * 0.01, 2);
+        $total = round($amount + $tax, 2);
 
-        if($request->amount + $tax > $user->wallet->balance){
-            return response()->json('You don\'t have enough money', 403);
-        }
+        DB::transaction(function () use ($user, $validated, $amount, $total) {
+            $wallet = Wallet::where('user_id', $user->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $wallet = $user->wallet;
-        $wallet->balance -= $tot;
-        $wallet->save();
+            if ((float) $wallet->balance < $total) {
+                throw new HttpResponseException(
+                    response()->json('You don\'t have enough money', 403)
+                );
+            }
 
-        Transaction::create([
-            'wallet_id' => $wallet->id,
-            'type' => 'withdraw',
-            'status' => 'pending',
-            'description' => 'with draw my money , the shamcash_number : ' . $request->shamcash_number,
-            'amount' => $request->amount
-        ]);
+            $wallet->balance = round((float) $wallet->balance - $total, 2);
+            $wallet->save();
+
+            Transaction::create([
+                'wallet_id' => $wallet->id,
+                'type' => 'withdraw',
+                'status' => 'pending',
+                'description' => 'Withdrawal request',
+                'shamcash_number' => $validated['shamcash_number'],
+                'amount' => $amount
+            ]);
+        });
 
         $this->notificationService->sendToUser(
                 userId: 1,
@@ -85,7 +96,7 @@ class TransactionController extends Controller
     public function getMyTransactionByStatus(Request $request){
 
         $request->validate([
-            'status' => 'required|string|in:pending, completed'
+            'status' => 'required|string|in:pending,completed'
         ]);
 
         $user = Auth::user();

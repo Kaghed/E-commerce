@@ -9,6 +9,28 @@ use App\Models\Wallet;
 
 class WalletService
 {
+    public function completePendingPayment(?int $transactionId): ?Transaction
+    {
+        if ($transactionId === null) {
+            return null;
+        }
+
+        $transaction = Transaction::query()
+            ->whereKey($transactionId)
+            ->lockForUpdate()
+            ->first();
+
+        if (!$transaction || $transaction->type !== 'payment') {
+            return $transaction;
+        }
+
+        if ($transaction->status === 'pending') {
+            $transaction->update(['status' => 'completed']);
+        }
+
+        return $transaction->fresh();
+    }
+
     
     public function debit(Wallet $wallet, float $amount,  $type, string $description){
      

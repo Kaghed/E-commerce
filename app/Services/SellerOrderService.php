@@ -63,31 +63,33 @@ class SellerOrderService
     {
         $seller = Auth::user();
 
-        $order = Order::where('id', $orderId)
-            ->with('product')
-            ->first();
+        return DB::transaction(function () use ($orderId, $seller) {
+            $order = Order::where('id', $orderId)
+                ->with('product')
+                ->lockForUpdate()
+                ->first();
 
-        if (!$order) {
-            return response()->json(['message' => 'Order not found.'], 404);
-        }
+            if (!$order) {
+                return response()->json(['message' => 'Order not found.'], 404);
+            }
 
-        $product = $order->product;
+            $product = $order->product;
 
-        if ($product->seller_id !== $seller->id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
+            if ($product->seller_id !== $seller->id) {
+                return response()->json(['message' => 'Unauthorized.'], 403);
+            }
 
-        if ($order->status == 'complete') {
-            return response()->json(['message' => 'Order is already completed.'], 422);
-        }
-
-        return DB::transaction(function () use ($order, $product) {
+            if ($order->status == 'complete') {
+                return response()->json(['message' => 'Order is already completed.'], 422);
+            }
 
 
-        $customerWallet = Wallet::firstOrCreate(
+            $customerWallet = Wallet::firstOrCreate(
                 ['user_id' => $order->customer_id],
                 ['balance' => 0]
             );
+
+            $this->walletService->completePendingPayment($order->transaction_id);
 
             $this->walletService->credit(
                 wallet: $customerWallet,

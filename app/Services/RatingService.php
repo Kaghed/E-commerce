@@ -3,44 +3,95 @@
 namespace App\Services;
 
 use App\Http\Requests\RateSellerRequest;
+use App\Models\Order;
+use App\Models\Product;
 use App\Models\Rating;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class RatingService
 {
-     public function rate(RateSellerRequest $request)
+    public function rate(RateSellerRequest $request)
     {
-        $user = Auth::user();
+        $customer = Auth::user();
 
-        $seller = User::findOrFail($request->seller_id);
+        return DB::transaction(function () use ($request, $customer) {
+            $order = Order::query()
+                ->whereKey($request->integer('order_id'))
+                ->where('customer_id', $customer->id)
+                ->lockForUpdate()
+                ->first();
 
-        
-        if ($user->id === $seller->id) {
-            return response()->json(['message' => 'You cannot rate yourself.'], 422);
-        }
+            if (! $order) {
+                throw ValidationException::withMessages([
+                    'order_id' => ['This order does not belong to the authenticated customer.'],
+                ]);
+            }
 
-        $rating = Rating::updateOrCreate(
-            [
-                'customer_id' => $user->id,
-                'seller_id'   => $seller->id,
-            ],
-            [
-                'value' => $request->value,
-            ]
-        );
+            if ($order->status !== 'complete') {
+                throw ValidationException::withMessages([
+                    'order_id' => ['Only completed orders can be rated.'],
+                ]);
+            }
 
-        return $rating;
+            $product = Product::query()
+                ->whereKey($order->product_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($customer->id === $product->seller_id) {
+                throw ValidationException::withMessages([
+                    'order_id' => ['You cannot rate yourself.'],
+                ]);
+            }
+
+            $alreadyRated = Rating::query()
+                ->where('customer_id', $customer->id)
+                ->where('product_id', $product->id)
+                ->exists();
+
+            if ($alreadyRated) {
+                throw ValidationException::withMessages([
+                    'order_id' => ['This product has already been rated.'],
+                ]);
+            }
+
+            return Rating::create([
+                'customer_id' => $customer->id,
+                'seller_id' => $product->seller_id,
+                'product_id' => $product->id,
+                'value' => $request->integer('value'),
+            ]);
+        });
     }
 
-    
-    public function sellerAverage($sellerId) {
+    public function sellerAverage($sellerId)
+    {
+        User::findOrFail($sellerId);
 
-        $averageRating = Rating::where('seller_id', $sellerId)->avg('value');
+        $ratings = Rating::query()
+            ->where('seller_id', $sellerId)
+            ->whereNotNull('product_id');
+
+        $mostCommonRating = (clone $ratings)
+            ->selectRaw('value, COUNT(*) as rating_count')
+            ->groupBy('value')
+            ->orderByDesc('rating_count')
+            ->orderByDesc('value')
+            ->first();
 
         return [
-            'seller_id'      => $sellerId,
-            'average_rating' => round($averageRating, 2),
+            'seller_id' => (int) $sellerId,
+            'most_common_rating' => $mostCommonRating
+                ? (int) $mostCommonRating->value
+                : null,
+            'rating_count' => (clone $ratings)->count(),
+            // Temporary compatibility field for clients that still read the old key.
+            'average_rating' => $mostCommonRating
+                ? (int) $mostCommonRating->value
+                : null,
         ];
     }
 }

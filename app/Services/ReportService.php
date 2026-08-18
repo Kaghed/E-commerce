@@ -197,10 +197,18 @@ class ReportService
         return DB::transaction(function () use ($report, $order, $product) {
 
          
-        $customerWallet = Wallet::firstOrCreate(
+            $order = Order::whereKey($order->id)
+                ->with('product')
+                ->lockForUpdate()
+                ->firstOrFail();
+            $product = $order->product;
+
+            $customerWallet = Wallet::firstOrCreate(
                 ['user_id' => $order->customer_id],
                 ['balance' => 0]
             );
+
+            $this->walletService->completePendingPayment($order->transaction_id);
 
             $this->walletService->credit(
                 wallet: $customerWallet,
