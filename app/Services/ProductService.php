@@ -20,6 +20,7 @@ class ProductService
             'title' => $request->title,
             'description' => $request->description,
             'price' => $request->price,
+            'status' => $request->status,
             'quantity' => $request->quantity,
             'governorate' => $request->governorate,
             'product_image_url' => $request->file('product_image_url')

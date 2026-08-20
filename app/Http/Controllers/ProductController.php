@@ -56,6 +56,9 @@ class ProductController extends Controller
     if ($request->filled('governorate')) {
         $query->where('governorate', $request->governorate);    
     }
+     if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
 
     $products = $query->paginate(10);
     return response()->json([

@@ -27,6 +27,7 @@ class CreateProductRequest extends FormRequest
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'quantity' => 'required|integer|min:0',
+            'status' => 'required|in:new,used',
             'product_image_url' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'product_url' => 'nullable|string|max:255|unique:products,product_url',
             'governorate' => 'required|in:' . implode(',', array_column(\App\Enums\Governorate::cases(), 'value')),

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2);
             $table->integer('quantity')->default(1);
+            $table->enum('status', ['new', 'used'])->default('used');
             $table->enum('governorate', array_column(Governorate::cases(), 'value'));
             $table->string('product_image_url')->nullable();
             $table->string('product_url')->nullable();

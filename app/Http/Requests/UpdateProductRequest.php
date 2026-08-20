@@ -27,6 +27,7 @@ class UpdateProductRequest extends FormRequest
             'description' => 'sometimes|string',
             'price' => 'sometimes|numeric|min:0',
             'quantity' => 'sometimes|integer|min:0',
+            'status' => 'sometimes|in:new,used',
             'product_image_url' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
             'product_url' => 'sometimes|string|max:255|unique:products,product_url',
             'governorate' => 'sometimes|in:' . implode(',', array_column(\App\Enums\Governorate::cases(), 'value')),
