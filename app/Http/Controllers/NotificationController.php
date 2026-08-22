@@ -29,10 +29,6 @@ class NotificationController extends Controller
             ->where('id', $id)
             ->firstOrFail();
 
-        /*
-         * قاعدة البيانات والموديل يستخدمان is_read،
-         * لذلك يجب تحديث هذا الحقل وليس read_at.
-         */
         if (!$notification->is_read) {
             $notification->is_read = true;
             $notification->save();
@@ -48,10 +44,7 @@ class NotificationController extends Controller
     {
         $user = Auth::user();
 
-        /*
-         * نبحث ضمن إشعارات المستخدم نفسه مباشرة.
-         * هذا يمنع المستخدم من حذف إشعار تابع لمستخدم آخر.
-         */
+       
         $notification = Notification::query()
             ->where('user_id', $user->id)
             ->where('id', $id)
